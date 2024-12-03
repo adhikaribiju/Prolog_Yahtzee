@@ -92,7 +92,7 @@ handle_method("M") :-
 handle_method("R") :-
     random_input.
 handle_method(_) :-
-    write("Invalid input method, please try again."), nl,
+    write("Invalid input, please try again."), nl,
     start_game.
 
 % Manual input for both players
@@ -105,7 +105,7 @@ manual_input :-
     read_input(P2String),
     parse_number(P2String, P2),
     validate_number(P2),
-    determine_winner(P1, P2).
+    determine_toss_winner(P1, P2).
 
 % Parse input string to a number
 parse_number(Input, Number) :-
@@ -117,7 +117,7 @@ random_input :-
     random_between(1, 6, P2),
     write("You rolled: "), write(P1), nl,
     write("Computer rolled: "), write(P2), nl,
-    determine_winner(P1, P2).
+    determine_toss_winner(P1, P2).
 
 % Validate the number is between 1 and 6
 validate_number(N) :-
@@ -129,9 +129,10 @@ validate_number(N) :-
     ).
 
 % Determine the winner or if it's a draw
-determine_winner(P1, P2) :-
+determine_toss_winner(P1, P2) :-
     (P1 > P2 ->
-        write("You won!"), nl
+        write("You won!"), nl,
+        scorecard
     ;
     P1 < P2 ->
         write("Computer won!"), nl
