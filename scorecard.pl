@@ -318,6 +318,22 @@ calculate_sum([H|T], Total) :-
     calculate_sum(T, SumRest),
     Total is H + SumRest.
 
+
+% find the player with the loweest score
+% find the score of human player, find the score of computer player
+% compare the scores
+% return the player with the lowest score, if the scores are equal, return the human player
+player_with_lowest_score(Scorecard, PlayerID) :-
+    calculate_total_score(Scorecard, 1, HumanScore),
+    calculate_total_score(Scorecard, 2, ComputerScore),
+    (HumanScore < ComputerScore -> PlayerID = 1; PlayerID = 2).
+
+calculate_total_score(Scorecard, PlayerID, TotalScore) :-
+    findall(Score, (member([_, Score, Player, _], Scorecard), Player = PlayerID), Scores),
+    calculate_sum(Scores, TotalScore).
+
+
+
 % main predicate to initialize and display the scorecard
 scorecard :-
     initialize_scorecard(Scorecard),

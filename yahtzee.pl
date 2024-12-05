@@ -156,22 +156,46 @@ start_round(PlayerID) :-
         computer_turn(Scorecard,RoundNum, NewScorecard),
         human_turn(NewScorecard, RoundNum, RoundEndScorecard)
     ),
-    play_consecutive_rounds(RoundEndScorecard,RoundNum, _, _).
+    player_with_lowest_score(RoundEndScorecard, NewPlayerID),
+    play_consecutive_rounds(RoundEndScorecard,RoundNum,NewPlayerID).
 
 
 % Play consecutive rounds
-play_consecutive_rounds(Scorecard, RoundNum, NewScorecard, NewRoundNo) :-
+play_consecutive_rounds(Scorecard, RoundNum, PlayerID) :-
     NewRoundNo is RoundNum + 1,
-    write("I am here"), nl,
     write("Starting Consecutive round"), nl,
-    human_turn(Scorecard, NewRoundNo, TempScorecard),
-    (is_scorecard_full(TempScorecard) ->
-        write("Game over!"), nl,
-        display_final_scores(TempScorecard)
+    (PlayerID =:= 2 ->
+        computer_turn(Scorecard, NewRoundNo, TempScorecard),
+        (handle_end_game(TempScorecard, NewRoundNo) ->
+            true
+        ;
+            human_turn(TempScorecard, NewRoundNo, NewScorecard)
+        )
     ;
-        play_consecutive_rounds(TempScorecard, NewRoundNo, _, _)
+        human_turn(Scorecard, NewRoundNo, TempScorecard),
+        (handle_end_game(TempScorecard, NewRoundNo) ->
+            true
+            ;
+             computer_turn(TempScorecard, NewRoundNo, NewScorecard)
+            )
+    ),
+    (is_scorecard_full(NewScorecard) ->
+        write("Game over!"), nl,
+        display_final_scores(NewScorecard)
+    ;
+        player_with_lowest_score(NewScorecard, NewPlayerID),
+        play_consecutive_rounds(NewScorecard, NewRoundNo,NewPlayerID)
     ).
 
+% check if the scorecard is full
+handle_end_game(Scorecard, RoundNo) :-
+    (is_scorecard_full(Scorecard) ->
+        write("Game over!"), nl,
+        display_final_scores(Scorecard),
+        true
+    ;
+        false
+    ).
 
 display_final_scores(Scorecard) :-
     display_scorecard(Scorecard), nl, nl,
