@@ -38,3 +38,18 @@
 % insertElement(X, [X | _]). <-- right
 % Do not start the name of a predicate with uppercase. This can result in spurious errors.
 % Make sure the end of the file does not occur on the same line as the last line of your last clause. In other words, be sure to hit a return after every clause in your source file.
+
+
+computer_turn(Scorecard, RoundNum, NewScorecard) :-
+    PlayerID is 2,
+    format("Computer Turn:"), nl,
+    format("Round: ~d~n", [RoundNum]),
+    display_scorecard(Scorecard),
+    roll_dice(DiceValues),
+    display_available_combinations(DiceValues, Scorecard),
+    availableCombinations(DiceValues, AvailableIndices),  % Get available categories.
+    (   AvailableIndices \= []  % Check if there are scoreable categories.
+    ->  ask_category_to_score(Scorecard, DiceValues, RoundNum, 2 , NewScorecard)
+    ;   write("Nothing to score, skipping turn."), nl
+    )
+    .

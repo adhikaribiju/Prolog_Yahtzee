@@ -1,6 +1,7 @@
 :-compile('scorecard.pl').
 :-compile('human.pl').
 :-compile('computer.pl').
+:-compile('dice.pl').
 
 %Do not use:
 % - cut
@@ -132,14 +133,71 @@ validate_number(N) :-
 determine_toss_winner(P1, P2) :-
     (P1 > P2 ->
         write("You won!"), nl,
-        scorecard
+        start_round(1)
     ;
     P1 < P2 ->
-        write("Computer won!"), nl
+        write("Computer won!"), nl,
+        start_round(2)
     ;
         write("It's a draw!"), nl,
         start_game
     ).
+
+
+% Start a new round
+start_round(PlayerID) :-
+    initialize_scorecard(Scorecard),
+    RoundNum is 1,
+    (PlayerID =:= 1 ->
+        human_turn(Scorecard, RoundNum, NewScorecard),
+        computer_turn(NewScorecard, RoundNum, RoundEndScorecard)
+    ;
+    PlayerID =:= 2 ->
+        computer_turn(Scorecard,RoundNum, NewScorecard),
+        human_turn(NewScorecard, RoundNum, RoundEndScorecard)
+    ),
+    play_consecutive_rounds(RoundEndScorecard,RoundNum, _, _).
+
+
+% Play consecutive rounds
+play_consecutive_rounds(Scorecard, RoundNum, NewScorecard, NewRoundNo) :-
+    NewRoundNo is RoundNum + 1,
+    write("I am here"), nl,
+    write("Starting Consecutive round"), nl,
+    human_turn(Scorecard, NewRoundNo, TempScorecard),
+    (is_scorecard_full(TempScorecard) ->
+        write("Game over!"), nl,
+        display_final_scores(TempScorecard)
+    ;
+        play_consecutive_rounds(TempScorecard, NewRoundNo, _, _)
+    ).
+
+
+display_final_scores(Scorecard) :-
+    display_scorecard(Scorecard), nl, nl,
+    calculate_final_scores(Scorecard, HumanScore, ComputerScore),
+    write("Your Score: "), write(HumanScore), nl,
+    write("Computer's Score: "), write(ComputerScore), nl, nl,
+    determine_winner(HumanScore, ComputerScore).
+
+% Calculate the final scores
+calculate_final_scores(Scorecard, HumanScore, ComputerScore) :-
+    calculate_total_score(Scorecard, 1, HumanScore),
+    calculate_total_score(Scorecard, 2, ComputerScore).
+
+% Determine the winner
+determine_winner(HumanScore, ComputerScore) :-
+    write("-------------------------"), nl,
+    (HumanScore > ComputerScore ->
+        write("You won!"), nl
+    ;
+    HumanScore < ComputerScore ->
+        write("Computer won!"), nl
+    ;
+        write("It's a draw!"), nl
+    ),
+    write("-------------------------"), nl, nl,
+    write("Exiting program..."), nl, nl.
 
 % Initialization directive
 :- initialization(start).
