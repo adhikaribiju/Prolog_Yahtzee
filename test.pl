@@ -1,35 +1,43 @@
-% Function to calculate indices of dice to keep
-find_dices_to_keep_indices(DiceValues, DicesToKeep, DicesToKeepInd) :-
-    find_dices_to_keep_indices_helper(DiceValues, DicesToKeep, [], DicesToKeepInd).
+% save_to_file(+Scorecard, +RoundNo)
+% Saves the Scorecard and RoundNo to a user-specified file in the required format.
+save_to_file(Scorecard, RoundNo) :-
+    write("Enter the name of the file (with .txt extension): "),
+    read_line_to_string(user_input, FileName), % Get the file name from the user
+    convert_scorecard(Scorecard, ProcessedValues), % Process the scorecard into the required format
+    Data = [RoundNo, ProcessedValues], % Combine RoundNo and ProcessedValues
+    open(FileName, write, Stream), % Open the file for writing
+    write(Stream, Data), % Write the data to the file
+    write(Stream, '.'), % Add a period at the end
+    close(Stream), % Close the file
+    format("Scorecard saved to ~w successfully.~n", [FileName]).
 
-% Helper function with accumulator
-find_dices_to_keep_indices_helper(_, [], Acc, Acc). % Base case: No more values to match
-find_dices_to_keep_indices_helper(DiceValues, [Keep|Rest], Acc, DicesToKeepInd) :-
-    nth1(Index, DiceValues, Keep), % Find the first index where the value matches
-    \+ member(Index, Acc),         % Ensure the index is not already included
-    find_dices_to_keep_indices_helper(DiceValues, Rest, [Index|Acc], DicesToKeepInd). % Recursively process the rest
+% convert_scorecard(+Scorecard, -ProcessedValues)
+% Converts the Scorecard into the required format for writing to a file.
+convert_scorecard([], []).
+convert_scorecard([[_, 0, _, _]|Rest], [[0]|ProcessedRest]) :-
+    % If Score is 0, write [0].
+    convert_scorecard(Rest, ProcessedRest).
+convert_scorecard([[_, Score, 1, Round]|Rest], [[Score, human, Round]|ProcessedRest]) :-
+    % If PlayerID is 1, map to 'human'.
+    convert_scorecard(Rest, ProcessedRest).
+convert_scorecard([[_, Score, 2, Round]|Rest], [[Score, computer, Round]|ProcessedRest]) :-
+    % If PlayerID is 2, map to 'computer'.
+    convert_scorecard(Rest, ProcessedRest).
 
-% Test runner with display logic
-run_tests :-
-    writeln('Running Tests...'),
-    test_case([1, 2, 3, 4, 5], [2, 4], 'Test 1'),
-    test_case([1, 2, 2, 4, 5], [2, 2], 'Test 2'),
-    test_case([3, 6, 3, 1, 5], [3, 5, 1], 'Test 3'),
-    test_case([3, 6, 3, 1, 5], [7], 'Test 4'),
-    test_case([3, 6, 3, 1, 5], [], 'Test 5'),
-    test_case([3, 6, 3, 1, 5], [3, 6, 3, 1, 5], 'Test 6'),
-    writeln('All tests completed.').
-
-% Test case handler with display
-test_case(DiceValues, DicesToKeep, TestName) :-
-    format("~n~w:~n", [TestName]),
-    format("Dice Values: ~w~n", [DiceValues]),
-    format("Dices to Keep: ~w~n", [DicesToKeep]),
-    (   find_dices_to_keep_indices(DiceValues, DicesToKeep, DicesToKeepInd)
-    ->  format("Kept Dice Indices: ~w~n", [DicesToKeepInd]),
-        writeln('Result: Passed')
-    ;   writeln('Result: Failed')
-    ).
-    
-% Automatically run tests on initialization
-:- initialization(run_tests).
+main:-
+Scorecard = [
+       ["Ones", 1, 1, 1],
+       ["Twos", 0, 0, 0],
+       ["Threes", 9, 2, 2],
+       ["Fours", 16, 1, 2],
+       ["Fives", 15, 2, 4],
+       ["Sixes", 12, 1, 4],
+       ["Three of a Kind", 15, 1, 3],
+       ["Four of a Kind", 7, 2, 3],
+       ["Full House", 0, 0, 0],
+       ["Four Straight", 0, 0, 0],
+       ["Five Straight", 0, 0, 0],
+       ["Yahtzee", 50, 1, 5]
+   ],
+   RoundNo = 6,
+   save_to_file(Scorecard, RoundNo).

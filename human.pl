@@ -69,7 +69,8 @@ reroll_dice(DiceValues, RerollIndices, UpdatedDiceValues) :-
 
 % Random reroll
 randomly_reroll_dice(DiceValues, RerollIndices, UpdatedDiceValues) :-
-    roll_specific_dice(length(RerollIndices), NewValues),
+    length(RerollIndices, NumReroll),
+    roll_specific_dice(NumReroll, NewValues),
     replace_indices(DiceValues, RerollIndices, NewValues, UpdatedDiceValues).
 
 % Manual reroll
@@ -80,7 +81,7 @@ manually_reroll_dice(DiceValues, RerollIndices, UpdatedDiceValues) :-
 % Generate random dice values
 generate_random_dice(0, []) :- !.
 generate_random_dice(N, [Value | Rest]) :-
-    random(1, 7, Value),
+    random_between(1, 6, Value),
     N1 is N - 1,
     generate_random_dice(N1, Rest).
 
@@ -126,7 +127,7 @@ ask_roll_or_stand(Decision) :-
 
 roll_specific_dice(0, []) :- !.
 roll_specific_dice(N, [Value | Rest]) :-
-    random(1, 7, Value),
+    random_between(1, 6, Value),
     N1 is N - 1,
     roll_specific_dice(N1, Rest).
 
@@ -169,3 +170,4 @@ roll_specific_dice(N, [Value | Rest]) :-
             ),
             find_dices_to_reroll_indices_helper(DiceValues, Rest, KeptIndices, Acc, DicesToRerollInd)
         ). % Recursively process the rest
+

@@ -270,7 +270,7 @@ calculate_score(CategoryNum, Dice, Score) :-
       CategoryNum = 12 -> (hasYahtzee(Dice) -> Score = 50; Score = 0)
     ).
 
-% ask_category_to_score(+Scorecard, +Dice)
+% %ask_category_to_score(+Scorecard, +Dice)
 % Asks the user for a category number to score and updates the Scorecard accordingly.
 ask_category_to_score(Scorecard, Dice, RoundNum, PlayerID, NewScorecard) :-
     scoreableCombinations(Dice, Scorecard, AvailableIndices),  % Find available combinations.

@@ -2,6 +2,7 @@
 :-compile('human.pl').
 :-compile('computer.pl').
 :-compile('dice.pl').
+:-compile('file_handling.pl').
 
 %Do not use:
 % - cut
@@ -71,8 +72,17 @@ read_input(Input) :-
 handle_choice("1") :-
     start_game.
 handle_choice("2") :-
-    write("Feature not implemented yet."), nl,
-    start.
+    load_scorecard(Scorecard,RoundNum),
+    nl,
+    calculate_final_scores(Scorecard, HumanScore, ComputerScore),
+    write("Your Score: "), write(HumanScore), nl,
+    write("Computer's Score: "), write(ComputerScore), nl, nl,
+    %format("Round Number: ~w~n", [RoundNum]),
+    %display_scorecard(Scorecard), nl,
+    nl,
+    NewRoundNo is RoundNum - 1,
+    player_with_lowest_score(Scorecard, NewPlayerID),
+    play_consecutive_rounds(Scorecard,NewRoundNo,NewPlayerID).
 handle_choice("3") :-
     write("Exiting program..."), nl, nl.
 handle_choice(_) :-
@@ -157,6 +167,7 @@ start_round(PlayerID) :-
         human_turn(NewScorecard, RoundNum, RoundEndScorecard)
     ),
     player_with_lowest_score(RoundEndScorecard, NewPlayerID),
+    ask_to_save_game(RoundEndScorecard, RoundNum),
     play_consecutive_rounds(RoundEndScorecard,RoundNum,NewPlayerID).
 
 
@@ -179,6 +190,7 @@ play_consecutive_rounds(Scorecard, RoundNum, PlayerID) :-
              computer_turn(TempScorecard, NewRoundNo, NewScorecard)
             )
     ),
+    ask_to_save_game(NewScorecard, RoundNum),
     (is_scorecard_full(NewScorecard) ->
         write("Game over!"), nl,
         display_final_scores(NewScorecard)
