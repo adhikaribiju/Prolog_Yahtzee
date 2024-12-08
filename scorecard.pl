@@ -246,7 +246,14 @@ is_category_set(Scorecard, CategoryNum) :-
 % update_scorecard(+Scorecard, +CategoryNum, +Dice)
 % Updates the Scorecard by calculating the score for the given category.
 update_scorecard(Scorecard, CategoryNum, Dice, RoundNum, PlayerID, NewScorecard) :-
+    % format("Scoring category ~w...~n", [CategoryNum]),
+    % format("Dice: ~w~n", [Dice]),
+    % format("PlayerID: ~w~n", [PlayerID]),
+    % format("RoundNum: ~w~n", [RoundNum]),
+    % format("Scorecard: ~w~n", [Scorecard]),
+    % format("CategoryNum: ~w~n", [CategoryNum]),
     calculate_score(CategoryNum, Dice, Score),
+    format("Score: ~w~n", [Score]),
     nth1(CategoryNum, Scorecard, CategoryRow),  % Get the row for the category.
     replace(CategoryRow, 2, Score, TempRow),    % Replace the score in the row.
     replace(TempRow, 3, PlayerID, TempRow2),  % Update the PlayerName in the row.
@@ -333,8 +340,337 @@ calculate_total_score(Scorecard, PlayerID, TotalScore) :-
     calculate_sum(Scores, TotalScore).
 
 
+    % get_scores_for_categories(+Categories, +Dice, -Scores)
+    % Given a list of Categories and Dice, return a list of corresponding scores.
+    get_scores_for_categories([], _, []).
+    get_scores_for_categories([CategoryNum|RestCategories], Dice, [Score|RestScores]) :-
+        get_score(CategoryNum, Dice, Score),
+        get_scores_for_categories(RestCategories, Dice, RestScores).
+
+
+% Check if the lower section of the scorecard is full (no score == 0 in lower section categories)
+is_lower_section_full(Scorecard) :-
+    % Define the lower section categories
+    LowerSection = [
+        "Three of a Kind",
+        "Four of a Kind",
+        "Full House",
+        "Four Straight",
+        "Five Straight",
+        "Yahtzee"
+    ],
+    % Check if all lower section scores are non-zero
+    \+ (member([Category, Score, _, _], Scorecard),
+        member(Category, LowerSection),
+        Score =:= 0).
+
+% Check if the upper section of the scorecard is full (no score == 0 in upper section categories)
+is_upper_section_full(Scorecard) :-
+    % Define the upper section categories
+    UpperSection = [
+        "Ones",
+        "Twos",
+        "Threes",
+        "Fours",
+        "Fives",
+        "Sixes"
+    ],
+    % Check if all upper section scores are non-zero
+    \+ (member([Category, Score, _, _], Scorecard),
+        member(Category, UpperSection),
+        Score =:= 0).
+
+
+% checks if the given category is filled
+% Define the is_category_filled function
+is_category_filled([[_, Score, _, _] | _], 1) :-
+    Score \= 0.
+
+is_category_filled([_ | Rest], CategoryNum) :-
+    CategoryNum > 1,
+    NextCategoryNum is CategoryNum - 1,
+    is_category_filled(Rest, NextCategoryNum).
+
+is_category_filled([[_, 0, _, _] | _], 1) :-
+    !, fail.
+
+
+% isFourSequential(+Dice, -FourSequential)
+% Checks if there are four sequential dice values in the list.
+isFourSequential(Dice, FourSequential) :-
+    remove_duplicates(Dice, UniqueDice),
+    sort(UniqueDice, SortedDice),
+    findFourSequential(SortedDice, FourSequential).
+
+% findFourSequential(+SortedDice, -FourSequential)
+% Finds four sequential dice values in a sorted list.
+findFourSequential([A, B, C, D | _], [A, B, C, D]) :-
+    B =:= A + 1,
+    C =:= B + 1,
+    D =:= C + 1.
+findFourSequential([_ | T], FourSequential) :-
+    findFourSequential(T, FourSequential).
+
+
+% findIndicesOfSequence(+Dice, +Sequence, -Indices)
+% Finds the indices of the sequence in the list of dice.
+findIndicesOfSequence(Dice, Sequence, Indices) :-
+    findIndicesHelper(Dice, Sequence, 1, Indices).
+
+% findIndicesHelper(+Dice, +Sequence, +CurrentIndex, -Indices)
+% Helper predicate to find the indices of the sequence.
+findIndicesHelper(_, [], _, []).
+findIndicesHelper([H | T], [H | SeqT], CurrentIndex, [CurrentIndex | Indices]) :-
+    NextIndex is CurrentIndex + 1,
+    findIndicesHelper(T, SeqT, NextIndex, Indices).
+findIndicesHelper([_ | T], Sequence, CurrentIndex, Indices) :-
+    NextIndex is CurrentIndex + 1,
+    findIndicesHelper(T, Sequence, NextIndex, Indices).
+
+% isThreeSequential(+Dice, -ThreeSequential)
+% Checks if there are three sequential dice values in the list.
+isThreeSequential(Dice, ThreeSequential) :-
+    remove_duplicates(Dice, UniqueDice),
+    sort(UniqueDice, SortedDice),
+    findThreeSequential(SortedDice, ThreeSequential).
+
+% findThreeSequential(+SortedDice, -ThreeSequential)
+% Finds three sequential dice values in a sorted list.
+findThreeSequential([A, B, C | _], [A, B, C]) :-
+    B =:= A + 1,
+    C =:= B + 1.
+findThreeSequential([_ | T], ThreeSequential) :-
+    findThreeSequential(T, ThreeSequential).
+
+% isThreeSequential(+Dice, -ThreeSequential)
+% Checks if there are three sequential dice values in the list.
+isThreeSequential(Dice, ThreeSequential) :-
+    remove_duplicates(Dice, UniqueDice),
+    sort(UniqueDice, SortedDice),
+    findThreeSequential(SortedDice, ThreeSequential).
+
+% findThreeSequential(+SortedDice, -ThreeSequential)
+% Finds three sequential dice values in a sorted list.
+findThreeSequential([A, B, C | _], [A, B, C]) :-
+    B =:= A + 1,
+    C =:= B + 1.
+findThreeSequential([_ | T], ThreeSequential) :-
+    findThreeSequential(T, ThreeSequential).
+
+% isTwoSequential(+Dice, -TwoSequential)
+% Checks if there are two sequential dice values in the list.
+isTwoSequential(Dice, TwoSequential) :-
+    remove_duplicates(Dice, UniqueDice),
+    sort(UniqueDice, SortedDice),
+    findTwoSequential(SortedDice, TwoSequential).
+
+% findTwoSequential(+SortedDice, -TwoSequential)
+% Finds two sequential dice values in a sorted list.
+findTwoSequential([A, B | _], [A, B]) :-
+    B =:= A + 1.
+findTwoSequential([_ | T], TwoSequential) :-
+    findTwoSequential(T, TwoSequential).
+
+
+% checkUniqueAmongPairs(+Dice, -UniqueIndex)
+% Checks if there is a unique element among two distinct pairs.
+checkUniqueAmongPairs(Dice, UniqueIndex) :-
+    collectPairs(Dice, Pairs),
+    length(Pairs, 2),  % Ensure there are exactly two distinct pairs.
+    Pairs = [Pair1, Pair2],
+    uniqueIndexAmongPairs(Dice, Pair1, Pair2, 1, UniqueIndex).
+
+% collectPairs(+Dice, -Pairs)
+collectPairs(Dice, Pairs) :-
+    collectPairsHelper(Dice, Dice, [], Pairs).
+
+% collectPairsHelper(+Remaining, +FullList, +Seen, -Pairs)
+collectPairsHelper([], _, Pairs, Pairs).
+collectPairsHelper([H | T], FullList, Seen, Pairs) :-
+    count_occurrences(H, FullList, Count),
+    Count =:= 2, \+ member(H, Seen),
+    collectPairsHelper(T, FullList, [H | Seen], Pairs).
+collectPairsHelper([_ | T], FullList, Seen, Pairs) :-
+    collectPairsHelper(T, FullList, Seen, Pairs).
+
+
+% uniqueIndexAmongPairs(+Dice, +Pair1, +Pair2, +Index, -UniqueIndex)
+% Finds the index of the unique element among two distinct pairs.
+uniqueIndexAmongPairs([], _, _, _, -1).  % Base case: no unique element found.
+uniqueIndexAmongPairs([H | T], Pair1, Pair2, Index, UniqueIndex) :-
+    H \= Pair1,
+    H \= Pair2,
+    UniqueIndex = Index.
+uniqueIndexAmongPairs([_ | T], Pair1, Pair2, Index, UniqueIndex) :-
+    NextIndex is Index + 1,
+    uniqueIndexAmongPairs(T, Pair1, Pair2, NextIndex, UniqueIndex).
+
+% remove_duplicates(+List, -UniqueList)
+% Removes duplicate elements from a list.
+remove_duplicates([], []).
+remove_duplicates([H | T], [H | Result]) :-
+    \+ member(H, T),
+    remove_duplicates(T, Result).
+remove_duplicates([_ | T], Result) :-
+    remove_duplicates(T, Result).
+
+
+% count_occurrences(+Element, +List, -Count)
+% Counts the occurrences of an element in a list.
+count_occurrences(_, [], 0).
+count_occurrences(Elem, [Elem | T], Count) :-
+    count_occurrences(Elem, T, SubCount),
+    Count is SubCount + 1.
+count_occurrences(Elem, [_ | T], Count) :-
+    count_occurrences(Elem, T, Count).
+
+
+
+% *********************************************************************
+% Function Name: keptIndicesChecker
+% Purpose: To check if the kept indices are valid.
+% Parameters: list1 (list) - The list of kept indices.
+%             list2 (list) - The list of all indices.
+% Return Value: True if all kept indices are valid, else false.
+% Algorithm:
+% 1. Check if the list1 is empty.
+% 2. If list1 is empty, return true (no common elements found).
+% 3. Check if the first element of list1 is in list2.
+% 4. If an element of list1 is in list2, return false.
+% 5. Recur with the rest of list1.
+% Reference: none
+% *********************************************************************
+
+% Base case: If the first list (list1) is empty, it is valid, so return true.
+kept_indices_checker([], _).
+% Recursive case: If the first element of list1 is found in list2, continue checking the rest of list1.
+kept_indices_checker([H | T], List2) :-
+    member(H, List2),  % Check that H is a member of List2.
+    kept_indices_checker(T, List2).  % Recur with the rest of list1.
+
+
+% *********************************************************************
+% Function Name: custom_remove
+% Purpose: To remove specific elements from a list.
+% Parameters: lst (list) - The list to remove elements from.
+%             items_to_remove (list) - The list of elements to remove.
+% Return Value: A list with the specified elements removed.
+% Algorithm:
+% 1. Check if the list is empty.
+% 2. If the list is empty, return an empty list.
+% 3. Check if the first element is in the items_to_remove list.
+% 4. If the element is in the items_to_remove list, skip it and continue with the rest of the list.
+% 5. If the element is not in the items_to_remove list, keep it and continue with the rest of the list.
+% Reference: none
+% *********************************************************************
+% custom_remove/3: Removes specified elements from a list.
+custom_remove([], _, []) :- !.
+custom_remove([H | T], ItemsToRemove, NewList) :-
+    member(H, ItemsToRemove),
+    !,
+    custom_remove(T, ItemsToRemove, NewList).
+custom_remove([H | T], ItemsToRemove, [H | NewList]) :-
+    custom_remove(T, ItemsToRemove, NewList).
+
+
+% giveFourOfaKindIndices(+Dice, -FourOfAKindIndices)
+% Finds the indices of dice that form a four of a kind.
+giveFourOfaKindIndices(Dice, FourOfAKindIndices) :-
+    findMatchingIndices(Dice, 4, FourOfAKindIndices).
+
+
+% giveThreeOfaKindIndices(+Dice, -ThreeOfAKindIndices)
+% Finds the indices of dice that form a three of a kind.
+giveThreeOfaKindIndices(Dice, ThreeOfAKindIndices) :-
+    findMatchingIndices(Dice, 3, ThreeOfAKindIndices).
+
+
+% giveTwoOfaKindIndices(+Dice, -TwoOfAKindIndices)
+% Finds the indices of dice that form a two of a kind.
+giveTwoOfaKindIndices(Dice, TwoOfAKindIndices) :-
+    findMatchingIndices(Dice, 2, TwoOfAKindIndices).
+
+
+% findMatchingIndices(+Dice, +MatchCount, -MatchingIndices)
+% Finds the indices of dice values that match a specific count.
+findMatchingIndices(Dice, MatchCount, MatchingIndices) :-
+    findMatchingIndicesHelper(Dice, Dice, MatchCount, [], MatchingIndices).
+
+% Helper predicate for findMatchingIndices
+findMatchingIndicesHelper([], _, _, _, []).  % Base case: no remaining dice.
+
+findMatchingIndicesHelper([Value | Rest], Dice, MatchCount, SeenValues, MatchingIndices) :-
+    countOccurrences(Value, Dice, Occurrences),
+    \+ member(Value, SeenValues),  % Ensure the value has not already been processed.
+    Occurrences >= MatchCount,  % Check if it matches the required count.
+    findIndices(Value, Dice, 1, Indices),
+    collect_first_n(Indices, MatchCount, CollectedIndices),
+    findMatchingIndicesHelper(Rest, Dice, MatchCount, [Value | SeenValues], RemainingIndices),
+    append(CollectedIndices, RemainingIndices, MatchingIndices).
+
+findMatchingIndicesHelper([Value | Rest], Dice, MatchCount, SeenValues, MatchingIndices) :-
+    (member(Value, SeenValues); countOccurrences(Value, Dice, Occurrences), Occurrences < MatchCount),
+    findMatchingIndicesHelper(Rest, Dice, MatchCount, SeenValues, MatchingIndices).
+
+
+
+% countOccurrences(+Value, +Dice, -Count)
+% Counts the occurrences of a specific value in a list of dice.
+countOccurrences(_, [], 0).  % Base case: empty list.
+
+countOccurrences(Value, [Value | Rest], Count) :-
+    countOccurrences(Value, Rest, SubCount),
+    Count is SubCount + 1.
+
+countOccurrences(Value, [_ | Rest], Count) :-
+    countOccurrences(Value, Rest, Count).
+
+% collect_first_n(+List, +N, -Collected)
+% Collects the first N elements from a list.
+collect_first_n(_, 0, []) :- !.  % Base case: collected required number of elements.
+collect_first_n([], _, []).  % Base case: no more elements to collect.
+collect_first_n([H | T], N, [H | Collected]) :-
+    N1 is N - 1,
+    collect_first_n(T, N1, Collected).
+
+% findIndices(+Value, +Dice, +Index, -Indices)
+% Finds the indices of a specific value in a list of dice.
+findIndices(_, [], _, []).  % Base case: empty list.
+
+findIndices(Value, [Value | Rest], Index, [Index | Indices]) :-
+    NextIndex is Index + 1,
+    findIndices(Value, Rest, NextIndex, Indices).
+
+findIndices(Value, [_ | Rest], Index, Indices) :-
+    NextIndex is Index + 1,
+    findIndices(Value, Rest, NextIndex, Indices).
+
+
+% removeValue(+Value, +Dice, -RemainingDice)
+% Removes all occurrences of a specific value from a list.
+removeValue(_, [], []).  % Base case: empty list.
+
+removeValue(Value, [Value | Rest], RemainingDice) :-
+    removeValue(Value, Rest, RemainingDice).
+
+removeValue(Value, [H | Rest], [H | RemainingDice]) :-
+    removeValue(Value, Rest, RemainingDice).
+
+
+
+% find_all_indices(+DiceValues, +ValuesToSearch, -Indices)
+% Returns the indices of each value in ValuesToSearch as they appear in DiceValues.
+% Only the first occurrence is taken, no duplicates.
+find_all_indices(_, [], []).
+find_all_indices(DiceValues, [Val|Vals], [Index|Indices]) :-
+    nth1(Index, DiceValues, Val), !,
+    find_all_indices(DiceValues, Vals, Indices).
+find_all_indices(DiceValues, [_|Vals], Indices) :-
+    find_all_indices(DiceValues, Vals, Indices).
 
 % main predicate to initialize and display the scorecard
 scorecard :-
     initialize_scorecard(Scorecard),
     display_scorecard(Scorecard).
+
+

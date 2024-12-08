@@ -171,3 +171,5 @@ roll_specific_dice(N, [Value | Rest]) :-
             find_dices_to_reroll_indices_helper(DiceValues, Rest, KeptIndices, Acc, DicesToRerollInd)
         ). % Recursively process the rest
 
+
+% Human Help Functions
