@@ -22,7 +22,7 @@ human_turn(Scorecard, RoundNum, NewScorecard) :-
 play_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, NewScorecard) :-
     format("Current Dice: ~w~n", [DiceValues]),
     (display_available_combinations(DiceValues, Scorecard)-> true; nl),
-    (display_potential_categories(DiceValues, Scorecard, RerollCount, _)->true;nl),
+    (display_potential_categories(DiceValues, Scorecard, RerollCount, _)->true;format("No potential categories found"),nl),
     availableCombinations(DiceValues, AvailableCategories), nl,
     (prompt_human_help(DiceValues, KeptIndices, Scorecard, RerollCount) -> nl; nl),
     (   RerollCount < 2
@@ -211,15 +211,14 @@ human_help(DiceValues, KeptIndices, Scorecard, RerollCount) :-
 % Decide what to do with the current dice based on available categories and full sections
 make_human_decision(DiceValues, KeptIndices, Scorecard) :-
     (   is_lower_section_full(Scorecard)
-    ->  %format("Lower section is full. Checking the upper section...~n"),
+    ->  format("Lower section is full. Checking the upper section...~n"),
         (   is_upper_section_full(Scorecard)
-        ->  %format("Both sections full, no scoring possible.~n")
-            nl
-        ;   %format("You may try to fill the upper section...~n"),
+        ->  format("Both sections full, no scoring possible.~n")
+        ;   format("You may try to fill the upper section...~n"),
             check_upper_section(DiceValues, KeptIndices, Scorecard)
         )
     ;   % Lower section not full
-        %format("You may try to fill the lower section...~n"),
+        format("You may try to fill the lower section...~n"),
         check_lower_section(DiceValues, KeptIndices, Scorecard)
     )
     .
@@ -231,12 +230,12 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
         ( \+ is_category_filled(Scorecard, 12) ->
             (hasYahtzee(DiceValues) -> % If Yahtzee is Available to score, score it.
                 format("Yahtzee is available to score. You may score it!~n")
-
-            ; % else Yahtzee is available on scorecard, so let's try to get it
+            ; % else Yahtzee is available on scorecard, so let's You may try to get it
                 giveFourOfaKindIndices(DiceValues, FourOfAKindIndices),
                 ( hasFourOfAKind(DiceValues), kept_indices_checker(KeptIndices, FourOfAKindIndices) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
                     % reroll the odd dice to get Yahtzee
                     format("You may try to get Yahtzee...~n"),
+                    custom_remove([1,2,3,4,5], FourOfAKindIndices, _IndicesToReroll),
                     display_roll_msg(FourOfAKindIndices, DiceValues)
                 ;   
                     giveThreeOfaKindIndices(DiceValues, ThreeOfAKindIndices),
@@ -248,70 +247,61 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                             ; 
                                 % reroll the odd dice to get Yahtzee
                                 format("You may try to get Yahtzee...~n"),
+                                custom_remove([1,2,3,4,5], ThreeOfAKindIndices, _IndicesToReroll),
                                 display_roll_msg(ThreeOfAKindIndices, DiceValues)
-                                
                             )
-                        ;
-                                % reroll the odd dice to get Yahtzee
-                                format("You may try to get Yahtzee...~n"),
-                                display_roll_msg(ThreeOfAKindIndices, DiceValues)
                         )
                     ;  
-                        %format("Straight Check Gardai Chu2"), nl,
+                        format("Straight Check Gardai Chu2"), nl,
                         % At this point, the dice doesn't have 4 of a kind or 3 of a kind, so let's see if there is sequence
                         ( \+ is_category_filled(Scorecard, 11) -> % Check if Five Straight is filled
                             (hasFiveStraight(DiceValues) -> % If Five Straight is Available to score, score it.
                                 format("Five Straight is available to score. You may score it!~n")
                             ;
-                                %format("Four Straight Check Gardai Chu3"), nl,
+                                format("Four Straight Check Gardai Chu3"), nl,
                                  % check for four straight
-                                % try to get five straight
+                                % You may try to get five straight
                                 (isFourSequential(DiceValues, FourStraightValues), find_all_indices(DiceValues, FourStraightValues, FourStraightIndices), kept_indices_checker(KeptIndices, FourStraightIndices) ->
                                     format("You may try to get Five Straight...~n"),
+                                    custom_remove([1,2,3,4,5], FourStraightIndices, _IndicesToReroll),
                                     display_roll_msg(FourStraightIndices, DiceValues)
                                 ;
-                                    % try to get five straight
+                                    % You may try to get five straight
                                     (isThreeSequential(DiceValues, ThreeStraightValues), find_all_indices(DiceValues, ThreeStraightValues, ThreeStraightIndices),kept_indices_checker(KeptIndices, ThreeStraightIndices) ->
-                                        (find_wildcard_index(DiceValues, WildcardIndex), kept_indices_checker(KeptIndices, [WildcardIndex]) ->
-                                            format("Trying to get Five Straight...~n"),
-                                            custom_remove([1,2,3,4,5], [WildcardIndex], IndicesToKeep2),
-                                            format("You may try to get Five Straight...~n"),
-                                            display_roll_msg(ThreeStraightIndices, IndicesToKeep2)
-                                        ;
-                                           format("You may try to get Five Straight...~n"),
-                                            display_roll_msg(ThreeStraightIndices, DiceValues)
-                                        )
-                                        
+                                        format("You may try to get Five Straight...~n"),
+                                        custom_remove([1,2,3,4,5], ThreeStraightIndices, _IndicesToReroll),
+                                        display_roll_msg(ThreeStraightIndices, DiceValues)
                                     ;
                                         % maybe there is 2 of a kind, but never mind, let's reroll everything
                                         format("Rerolling everything possible to get Yahtze"), nl,
-                                        
+                                        custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                         display_roll_msg(KeptIndices, DiceValues)
                                     )
                                 )
                             )
                         ;
-                            % Since Five Striaght is filled, let's try to get Four Straight
+                            % Since Five Striaght is filled, let's You may try to get Four Straight
                             % check for four straight
                             ( \+ is_category_filled(Scorecard, 10) -> 
                                 (hasFourStraight(DiceValues) ->
                                     format("Four Straight is available to score. You may score it!~n")
                                 ;
-                                        % try to get five straight
+                                        % You may try to get five straight
                                         (isThreeSequential(DiceValues, ThreeStraightValues), find_all_indices(DiceValues, ThreeStraightValues, ThreeStraightIndices),kept_indices_checker(KeptIndices, ThreeStraightIndices) ->
-                                            format("You may try to get Four Straight...~n"),
-                                            display_roll_msg(ThreeStraightIndices, DiceValues)
+                                        format("You may try to get Four Straight...~n"),
+                                        custom_remove([1,2,3,4,5], ThreeStraightIndices, _IndicesToReroll),
+                                        display_roll_msg(ThreeStraightIndices, DiceValues)
                                         ;
-                                            % maybe there is 2 of a kind, but never mind, let's reroll everything
-                                            format("Rerolling everything possible to get Yahtzee"), nl,
-                                            
-                                            display_roll_msg(KeptIndices, DiceValues)
+                                        % maybe there is 2 of a kind, but never mind, let's reroll everything
+                                        format("Rerolling everything possible to get Yahtzee"), nl,
+                                        custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
+                                        display_roll_msg(KeptIndices, DiceValues)
                                         )
                                 )
                             ;
                                 % At this point, no swquence/of a kind is available, so let's reroll everything
                                 format("Rerolling everything possible to get Yahtze"), nl,
-                                
+                                custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                 display_roll_msg(KeptIndices, DiceValues)
                             )
                         )
@@ -323,41 +313,33 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
         
         ;
            % At this point, Yahtzee is not availble on the scorecard.
-            % Let's try sequence then of a kind)
-            %format("Straight Check Gardai Chu4"), nl,
+            % Let's You may try sequence then of a kind)
+            format("Straight Check Gardai Chu4"), nl,
             % At this point, the dice doesn't have 4 of a kind or 3 of a kind, so let's see if there is sequence
             ( \+ is_category_filled(Scorecard, 11) -> % Check if Five Straight is filled
                 (hasFiveStraight(DiceValues) -> % If Five Straight is Available to score, score it.
                     format("Five Straight is available to score. You may score it!~n")
                 ;
-                    %format("Four Straight Check Gardai Chu1"), nl,
+                    format("Four Straight Check Gardai Chu1"), nl,
                         % check for four straight
-                    % try to get five straight
+                    % You may try to get five straight
                     (isFourSequential(DiceValues, FourStraightValues), find_all_indices(DiceValues, FourStraightValues, FourStraightIndices), kept_indices_checker(KeptIndices, FourStraightIndices) ->
                         format("You may try to get Five Straight...~n"),
+                        custom_remove([1,2,3,4,5], FourStraightIndices, _IndicesToReroll),
                         display_roll_msg(FourStraightIndices, DiceValues)
                     ;
-                        % try to get five straight
+                        % You may try to get five straight
                         (isThreeSequential(DiceValues, ThreeStraightValues), find_all_indices(DiceValues, ThreeStraightValues, ThreeStraightIndices),kept_indices_checker(KeptIndices, ThreeStraightIndices) ->
-                            (find_wildcard_index(DiceValues, WildcardIndex), kept_indices_checker(KeptIndices, [WildcardIndex]) ->
-                                format("Trying to get Five Straight...~n"),
-                                custom_remove([1,2,3,4,5], [WildcardIndex], IndicesToKeep2),
-                                format("You may try to get Five Straight...~n"),
-                                display_roll_msg(ThreeStraightIndices, IndicesToKeep2)
-                            ;
-                                format("You may try to get Five Straight...~n"),
-                                display_roll_msg(ThreeStraightIndices, DiceValues)
-                            )
+                            format("You may try to get Five Straight...~n"),
+                            custom_remove([1,2,3,4,5], ThreeStraightIndices, _IndicesToReroll),
+                            display_roll_msg(ThreeStraightIndices, DiceValues)
                         ;
 
                             % check for 4 of a kind, full house, 3 of a kind and 2 of a kind
-                        
-                            
                             % check if 4 of a kind is filled
                             ( \+ is_category_filled(Scorecard, 8) -> 
                                 ( hasFourOfAKind(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
                                     format("Four of a Kind is available to score. You may score it!~n")
-                                
                                 ;   
                                     giveThreeOfaKindIndices(DiceValues, ThreeOfAKindIndices),
                                     ( hasThreeOfAKind(DiceValues), kept_indices_checker(KeptIndices, ThreeOfAKindIndices) -> % If there is a three of a kind, reroll the odd dice to get Yahtzee
@@ -367,19 +349,17 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                             ; 
                                                 % reroll the odd dice to get Yahtzee
                                                 format("You may try to get Four of a Kind...~n"),
+                                                custom_remove([1,2,3,4,5], ThreeOfAKindIndices, _IndicesToReroll),
                                                 display_roll_msg(ThreeOfAKindIndices, DiceValues)
-                                                
                                             )
-                                        ;
-                                            % reroll the odd dice to get Yahtzee
-                                                format("You may try to get Four of a Kind...~n"),
-                                                display_roll_msg(ThreeOfAKindIndices, DiceValues)
                                         )
+
+
 
                                     ;
                                         % check for 2 of a kind, if yes, maybe full house?
                                         giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
-                                        ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                        ( (length(TwoOfAKindIndices, 2)), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                             (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                 format("You may try to get Full House...~n"),
                                                 custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
@@ -387,16 +367,15 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                                 reroll_dice(DiceValues, OddIndex, _NewDiceValues)
                                             ;
                                                 format("You may try to get Four of a Kind...~n"),
+                                                custom_remove([1,2,3,4,5], TwoOfAKindIndices, _IndicesToReroll),
                                                 display_roll_msg(TwoOfAKindIndices, DiceValues)
                                             )
                                         ;   
                                             % reroll all dice
                                             format("Rerolling everything possible to get Four of a Kind"), nl,
-                                            
+                                            custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                             display_roll_msg(KeptIndices, DiceValues)
                                         )
-
-                                    
                                     )
                                 )
                             ;
@@ -410,11 +389,11 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                 ; 
                                     ( \+ is_category_filled(Scorecard, 7) -> 
                                         ( hasThreeOfAKind(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
-                                            format("Three of a Kind is available to score. You may score it!~n")
+                                           format("Three of a Kind is available to score. You may score it!~n")
                                         ;   
                                             % check for 2 of a kind, if yes, maybe full house?
                                                 giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
-                                                ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                                ( (length(TwoOfAKindIndices, 2)), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("You may try to get Full House...~n"),
                                                         custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
@@ -422,19 +401,20 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                                         reroll_dice(DiceValues, OddIndex, _NewDiceValues)
                                                     ;
                                                         format("You may try to get Three of a Kind...~n"),
-                                                        display_roll_msg(TwoOfAKindIndices, DiceValues)                   
+                                                        custom_remove([1,2,3,4,5], TwoOfAKindIndices, _IndicesToReroll),
+                                                        display_roll_msg(TwoOfAKindIndices, DiceValues)             
                                                     )
                                                 ;   
                                                     % reroll all dice
                                                     format("Rerolling everything possible to get Three of a Kind"), nl,
-                                                    
+                                                    custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                                     display_roll_msg(KeptIndices, DiceValues)
                                                 )
                                         )
                                     ;
                                         % reroll all dice
                                         format("Rerolling everything possible to get Three of a Kind..."), nl,
-                                        
+                                        custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                         display_roll_msg(KeptIndices, DiceValues)
                                     )
                                 )
@@ -445,15 +425,17 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                     )
                 )
             ;
-                % Since Five Striaght is filled, let's try to get Four Straight
+                % Since Five Striaght is filled, let's You may try to get Four Straight
                 % check for four straight
                 ( \+ is_category_filled(Scorecard, 10) -> 
                     (hasFourStraight(DiceValues) ->
+                        % Yahtzee is Available to score, score it.
                         format("Four Straight is available to score. You may score it!~n")
                     ;
-                            % try to get five straight
+                            % You may try to get five straight
                             (isThreeSequential(DiceValues, ThreeStraightValues), find_all_indices(DiceValues, ThreeStraightValues, ThreeStraightIndices),kept_indices_checker(KeptIndices, ThreeStraightIndices) ->
                                 format("You may try to get Four Straight...~n"),
+                                custom_remove([1,2,3,4,5], ThreeStraightIndices, _IndicesToReroll),
                                 display_roll_msg(ThreeStraightIndices, DiceValues)
                             ;
                                 % check for 4 of a kind, full house, 3 of a kind and 2 of a kind
@@ -471,38 +453,32 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                                 ( hasFullHouse(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
                                                    format("Full House is available to score. You may score it!~n")
                                                 ; 
-
                                                     % reroll the odd dice to get Yahtzee
                                                     format("You may try to get Four of a Kind...~n"),
+                                                    custom_remove([1,2,3,4,5], ThreeOfAKindIndices, _IndicesToReroll),
                                                     display_roll_msg(ThreeOfAKindIndices, DiceValues)
                                                 )
-                                            ;
-                                                    % reroll the odd dice to get Yahtzee
-                                                    format("You may try to get Four of a Kind...~n"),
-                                                    display_roll_msg(ThreeOfAKindIndices, DiceValues)
-
                                             )
 
 
                                         ;
                                             % check for 2 of a kind, if yes, maybe full house?
                                             giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
-                                            ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                            ( (length(TwoOfAKindIndices, 2)), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                 (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                     format("You may try to get Full House...~n"),
                                                     custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
                                                     display_roll_msg(FullHouseIndices, DiceValues),
-                                                    reroll_dice(DiceValues, OddIndex, _NewDiceValues) 
+                                                    reroll_dice(DiceValues, OddIndex, _NewDiceValues)
                                                 ;
                                                     format("You may try to get Four of a Kind...~n"),
+                                                    custom_remove([1,2,3,4,5], TwoOfAKindIndices, _IndicesToReroll),
                                                     display_roll_msg(TwoOfAKindIndices, DiceValues)
-                                                    
-                                                    
                                                 )
                                             ;   
                                                 % reroll all dice
                                                 format("Rerolling everything possible to get Four of a Kind"), nl,
-                                                
+                                                custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                                 display_roll_msg(KeptIndices, DiceValues)
                                             )
 
@@ -516,39 +492,38 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                         ( hasThreeOfAKind(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
 
                                             (\+ is_category_filled(Scorecard, 9) -> 
-                                                ( hasFullHouse(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
+                                                ( hasFullHouse(DiceValues)) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
                                                     format("Full House is available to score. You may score it!~n")
                                                 ; 
                                                     format("Three of a Kind is available to score. You may score it!~n")
-                                                )
-                                            ;
-                                                format("Three of a Kind is available to score. You may score it!~n")
+                                                    
                                             )
                                             
 
                                         ;   
                                             % check for 2 of a kind, if yes, maybe full house?
                                                 giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
-                                                ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                                ( (length(TwoOfAKindIndices, 2)), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("You may try to get Full House...~n"),
                                                         custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
                                                         display_roll_msg(FullHouseIndices, DiceValues)
                                                     ;
-                                                        format("You may try to get Three of a Kind...~n"),
-                                                        display_roll_msg(TwoOfAKindIndices, DiceValues)                   
+                                                        format("You may try to get Three of a Kind??...~n"),
+                                                        custom_remove([1,2,3,4,5], TwoOfAKindIndices, _IndicesToReroll),
+                                                        display_roll_msg(TwoOfAKindIndices, DiceValues)              
                                                     )
                                                 ;   
                                                     % reroll all dice
-                                                    format("Rerolling everything possible to get Three of a Kind"), nl,
-                                                    
+                                                    format("Rerolling everything possible to get Three of a Kind==="), nl,
+                                                    custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                                     display_roll_msg(KeptIndices, DiceValues)
                                                 )
                                         )
                                     ;
                                         % reroll all dice
-                                        format("Rerolling everything possible to get Three of a Kind"), nl,
-                                        
+                                        format("Rerolling everything possible to get Three of a Kind444"), nl,
+                                        custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                         display_roll_msg(KeptIndices, DiceValues)
                                     )
                                 )
@@ -556,7 +531,7 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                             )
                     )
                 ;
-                    % At this point, Yahtzee, Five Straight and Four Straight are filled, so let's try to get Full House/Three of a Kind/Four of a Kind
+                    % At this point, Yahtzee, Five Straight and Four Straight are filled, so let's You may try to get Full House/Three of a Kind/Four of a Kind
                     % check for 4 of a kind, full house, 3 of a kind and 2 of a kind  
                     % check if 4 of a kind is filled
                     ( \+ is_category_filled(Scorecard, 8) -> 
@@ -570,29 +545,29 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                     ( hasFullHouse(DiceValues)) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
                                         format("Full House is available to score. You may score it!~n")
                                     ; 
-
                                     % reroll the odd dice to get Yahtzee
                                     format("You may try to get Four of a Kind...~n"),
+                                    custom_remove([1,2,3,4,5], ThreeOfAKindIndices, _IndicesToReroll),
                                     display_roll_msg(ThreeOfAKindIndices, DiceValues)
-                                    
                                 )   
 
                             ;
                                 % check for 2 of a kind, if yes, maybe full house?
                                 giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
-                                ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                ( (length(TwoOfAKindIndices, 2)), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                         format("You may try to get Full House...~n"),
                                         custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
                                         display_roll_msg(FullHouseIndices, DiceValues)
                                     ;
                                         format("You may try to get Four of a Kind...~n"),
-                                        display_roll_msg(TwoOfAKindIndices, DiceValues) 
+                                        custom_remove([1,2,3,4,5], TwoOfAKindIndices, _IndicesToReroll),
+                                        display_roll_msg(TwoOfAKindIndices, DiceValues)
                                     )
                                 ;   
                                     % reroll all dice
                                     format("Rerolling everything possible to get Four of a Kind2323"), nl,
-                                    
+                                    custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                     display_roll_msg(KeptIndices, DiceValues)
                                 )
 
@@ -605,7 +580,7 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                             ( hasThreeOfAKind(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
                                (\+ is_category_filled(Scorecard, 9) -> 
                                         ( hasFullHouse(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
-                                            format("Full House is available to score. You may score it!~n")
+                                           format("Full House is available to score. You may score it!~n")
                                         ; 
                                             format("Three of a Kind is available to score. You may score it!~n")
                                         )
@@ -615,58 +590,60 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                             ;   
                                 % check for 2 of a kind, if yes, maybe full house?
                                     giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
-                                    ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                    ( (length(TwoOfAKindIndices, 2)), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                         (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                             format("You may try to get Full House...~n"),
                                             custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                            display_roll_msg(FullHouseIndices, DiceValues) 
+                                            display_roll_msg(FullHouseIndices, DiceValues)
                                         ;
                                             format("You may try to get Three of a Kind))...~n"),
-                                            display_roll_msg(TwoOfAKindIndices, DiceValues)                    
+                                            custom_remove([1,2,3,4,5], TwoOfAKindIndices, _IndicesToReroll),
+                                            display_roll_msg(TwoOfAKindIndices, DiceValues)              
                                         )
                                     ;   
                                         % reroll all dice
                                         format("Rerolling everything possible to get Three of a Kind"), nl,
-                                        
+                                        custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                         display_roll_msg(KeptIndices, DiceValues)
                                     )
                             )
                         ;
+
                             (\+ is_category_filled(Scorecard, 9) -> 
                                 ( hasFullHouse(DiceValues) -> % If there is a Full House
                                     format("Full House is available to score. You may score it!~n")
                                 ; 
-                                    
-
                                     giveThreeOfaKindIndices(DiceValues, ThreeOfAKindIndices),
                                     ( hasThreeOfAKind(DiceValues), kept_indices_checker(KeptIndices, ThreeOfAKindIndices) ->
-                                        format("You may try to get Full House...~n"),
-                                        display_roll_msg(ThreeOfAKindIndices, DiceValues)       
+                                    format("You may try to get Full House...~n"),
+                                    custom_remove([1,2,3,4,5], ThreeOfAKindIndices, _IndicesToReroll),
+                                    display_roll_msg(ThreeOfAKindIndices, DiceValues)
                                     ;
-                                        % Try to get a Full House?
-                                        giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
-                                        ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
-                                            (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
-                                                format("You may try to get Full House...~n"),
-                                                custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                display_roll_msg(FullHouseIndices, DiceValues) 
-                                            ;
-                                                format("You may try to get Full House...~n"),
-                                                display_roll_msg(TwoOfAKindIndices, DiceValues)                    
-                                            )
-                                        ;   
-                                            % reroll all dice
-                                            format("Rerolling everything possible"), nl,
-                                            
-                                            display_roll_msg(KeptIndices, DiceValues)
-                                        )                                    
+                                    % You may try to get a Full House?
+                                    giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                    ( (length(TwoOfAKindIndices, 2)), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                        (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
+                                            format("You may try to get Full House...~n"),
+                                            custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
+                                            display_roll_msg(FullHouseIndices, DiceValues)
+                                        ;
+                                            format("You may try to get Full House++...~n"),
+                                            custom_remove([1,2,3,4,5], TwoOfAKindIndices, _IndicesToReroll),
+                                            display_roll_msg(TwoOfAKindIndices, DiceValues)              
+                                        )
+                                    ;   
+                                        % reroll all dice
+                                        format("Rerolling everything possible"), nl,
+                                        custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
+                                        display_roll_msg(KeptIndices, DiceValues)
+                                    )                                    
                                     )
 
                                 )
                             ;
                                 % reroll all dice
                                 format("Rerolling everything possible to get Full House"), nl,
-                                
+                                custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
                                 display_roll_msg(KeptIndices, DiceValues)
                             )
                         )
@@ -705,7 +682,7 @@ check_upper_section(DiceValues, KeptIndices, Scorecard) :-
     get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore),
     (   CategoriesAvailableToScore = []
     ->  % No available categories here either
-        
+        custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
         display_roll_msg(KeptIndices, DiceValues)
     ;   % Pick the best upper category to score
         find_highest_category(CategoriesAvailableToScore, ScoresOfCategoriesAvailableToScore, HighestCategory),
@@ -715,7 +692,7 @@ check_upper_section(DiceValues, KeptIndices, Scorecard) :-
             format("You may score  category: ~w since it scores more than 7~n", [HighestCategoryName])
         ;
             format("None of the categories score more than 7.~n"),
-            
+            custom_remove([1,2,3,4,5], KeptIndices, _IndicesToReroll),
             display_roll_msg(KeptIndices, DiceValues)
         )
     ).

@@ -1,44 +1,3 @@
-%Do not use:
-% - cut
-% - assert, retract
-% - repeat and any other such imperative construct.
- 
-% Use % to comment your code. The comment runs from the % to the end of the line
-% Properly indent your code to make it readable
-% Doing top-down design can save a lot of aggravation.
-
-% Language Details
-% random_between(1, 5, Val)
-
-% returns 1 =< Val =< 5.
-% Be careful with the order of \= operator, as well as =< and >= operators.
-% To print a text message, you may want to use:
-
-% printstring([]).
-% printstring([H][T]) :- put(H), printstring(T).
-% Call it as:
-% printstring("******Here is a String******").
-
-% print(term) prints any term (variable/constant/structure..)
-% Use read(term) to read in a term.
-
-% When running the program, at the keyboard, enter the term, followed by a period, and a carriage return.
-% When defining a predicate with no arguments, do not use empty parentheses. E.g.,
-
-% junk :- print(1), nl.
-% Query it as follows:
-% ?- junk.
-% When entering a list at the keyboard as input to a read(X) clause, enter commas between elements of the list.
-
-% E.g., instead of typing [3 + 4].
-% enter [3, +, 4].
-% Do not insert a space between the name of a predicate and the opening parenthesis of its argument list. SWI-Prolog flags this as an error. E.g.,:
-
-% insertElement (X, [X | _]). <-- wrong
-% insertElement(X, [X | _]). <-- right
-% Do not start the name of a predicate with uppercase. This can result in spurious errors.
-% Make sure the end of the file does not occur on the same line as the last line of your last clause. In other words, be sure to hit a return after every clause in your source file.
-
 
 % get_player(PlayerID, PlayerName)
 % Maps a player ID to the corresponding player name.
@@ -584,10 +543,42 @@ giveThreeOfaKindIndices(Dice, ThreeOfAKindIndices) :-
     findMatchingIndices(Dice, 3, ThreeOfAKindIndices).
 
 
-% giveTwoOfaKindIndices(+Dice, -TwoOfAKindIndices)
-% Finds the indices of dice that form a two of a kind.
+% % giveTwoOfaKindIndices(+Dice, -TwoOfAKindIndices)
+% % Finds the indices of dice that form a two of a kind.
 giveTwoOfaKindIndices(Dice, TwoOfAKindIndices) :-
     findMatchingIndices(Dice, 2, TwoOfAKindIndices).
+
+% giveTwoOfaKindIndices(+Dice, -TwoOfAKindIndices)
+% Finds the indices of the first two-of-a-kind in Dice.
+giveTwoOfaKindOrFourIndices(Dice, TwoOfAKindIndices) :-
+    findall(Value, (
+        member(Value, Dice),                   % Iterate over each value in Dice
+        include(=(Value), Dice, Matches),      % Collect all matches for that value
+        length(Matches, Count),
+        Count >= 2                             % Ensure at least two occurrences
+    ), [FirstTwoOfAKind | _]),                 % Take the first value with at least two occurrences
+    findIndicess(FirstTwoOfAKind, Dice, 1, AllIndices),
+    length(TwoOfAKindIndices, 2),             % Ensure exactly two indices are returned
+    append(TwoOfAKindIndices, _, AllIndices), % Get the first two indices of the value
+    !.                                         % Stop after finding the first two-of-a-kind.
+
+% If no two-of-a-kind is found, return an empty list.
+giveTwoOfaKindOrFourIndices(_, []).
+
+% findIndices(+Value, +Dice, +StartIndex, -Indices)
+% Finds all indices of Value in Dice starting from StartIndex.
+findIndicess(_, [], _, []).  % Base case: empty Dice, no indices.
+findIndicess(Value, [Value | Rest], Index, [Index | Indices]) :-
+    NextIndex is Index + 1,
+    findIndicess(Value, Rest, NextIndex, Indices).
+findIndicess(Value, [_ | Rest], Index, Indices) :-
+    NextIndex is Index + 1,
+    findIndicess(Value, Rest, NextIndex, Indices).
+
+
+
+
+
 
 
 % findMatchingIndices(+Dice, +MatchCount, -MatchingIndices)
@@ -757,9 +748,22 @@ find_wildcard_index(DiceVals, WildcardIndex) :-
     % Define all valid patterns with their wildcard indices
     Patterns = [
         ([1, 2, 3, _, 5], 4),
-        ([2, 3, 4, _, 6], 4),
+        ([_, 1, 2, 3, 5], 1),
+        ([1, _, 2, 3, 5], 2),
+        ([1, 2, _, 3, 5], 3),
+        ([1, 2, 3, 4, _], 5),
+        ([_, 2, 3, 4, 5], 1),
+        ([2, _, 3, 4, 5], 2),
+        ([2, 3, _, 4, 5], 3),
+        ([2, 3, 4, _, 5], 4),
+        ([_, 3, 4, 5, 6], 1),
+        ([3, _, 4, 5, 6], 2),
+        ([3, 4, _, 5, 6], 3),
+        ([3, 4, 5, _, 6], 4),
+        ([3, 4, 5, 6, _], 5),
         ([1, _, 3, 4, 5], 2),
-        ([2, _, 4, 5, 6], 2)
+        ([2, _, 4, 5, 6], 2),
+        ([2, 3, 4, _, 6], 4)
     ],
     % Check if any pattern matches DiceVals
     member((Pattern, WildcardIndex), Patterns),

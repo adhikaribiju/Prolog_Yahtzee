@@ -11,9 +11,11 @@ computer_turn(Scorecard, RoundNum, NewScorecard) :-
     display_scorecard(Scorecard), nl,
     roll_dice(DiceValues),
     (   play_computer_turn(DiceValues, [], Scorecard, RoundNum, 0, NewScorecard, PlayerID)
-    ->  format("Working as intended.~n")
-    ;   format("Error: Failed to compute a valid turn.~n"),
-        format("ani New Scorecard____: ~w~n", [NewScorecard])
+    ->  nl %format("Working as intended.~n")
+    ;   format("?~n"),
+        NewScorecard = Scorecard
+        %format("Error: Failed to compute a valid turn.~n"),
+        %format("ani New Scorecard____: ~w~n", [NewScorecard])
     ).
 
 % Recursive logic for the computer turn
@@ -57,18 +59,18 @@ make_computer_decision(CategoryScored, DiceValues, KeptIndices, Scorecard, Round
     %format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]), nl,
 
     (   is_lower_section_full(Scorecard)
-    ->  format("Lower section is full. Checking the upper section...~n"),
+    ->  %format("Lower section is full. Checking the upper section...~n"),
         (   is_upper_section_full(Scorecard)
-        ->  format("Both sections full, no scoring possible.~n"),
+        ->  %format("Both sections full, no scoring possible.~n"),
             CategoryScored = 0,
             NewScorecard = Scorecard,
             NewDiceValues = DiceValues,
             NewKeptIndices = KeptIndices
-        ;   format("Trying to fill the upper section...~n"),
+        ;   %format("Trying to fill the upper section...~n"),
             try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID)
         )
     ;   % Lower section not full
-        format("Trying to fill the lower section...~n"),
+        %format("Trying to fill the lower section...~n"),
         try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID)
     )
 
@@ -134,7 +136,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
 
                     ;  
-                        format("Straight Check Gardai Chu2"), nl,
+                        %format("Straight Check Gardai Chu2"), nl,
                         % At this point, the dice doesn't have 4 of a kind or 3 of a kind, so let's see if there is sequence
                         ( \+ is_category_filled(Scorecard, 11) -> % Check if Five Straight is filled
                             (hasFiveStraight(DiceValues) -> % If Five Straight is Available to score, score it.
@@ -144,7 +146,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                 NewDiceValues = DiceValues,
                                 NewKeptIndices = KeptIndices
                             ;
-                                format("Four Straight Check Gardai Chu3"), nl,
+                                %format("Four Straight Check Gardai Chu3"), nl,
                                  % check for four straight
                                 % try to get five straight
                                 (isFourSequential(DiceValues, FourStraightValues), find_all_indices(DiceValues, FourStraightValues, FourStraightIndices), kept_indices_checker(KeptIndices, FourStraightIndices) ->
@@ -163,7 +165,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                             display_keeps(IndicesToKeep2, DiceValues),
                                             reroll_dice(DiceValues, [WildcardIndex], NewDiceValues),
                                             format("New Dice: ~w~n", [NewDiceValues]),
-                                            NewKeptIndices = IndicesToKeep2
+                                            NewKeptIndices = []
                                         ;
                                             format("Trying to get Five Straight...~n"),
                                             custom_remove([1,2,3,4,5], ThreeStraightIndices, IndicesToReroll),
@@ -229,7 +231,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
         ;
            % At this point, Yahtzee is not availble on the scorecard.
             % Let's try sequence then of a kind)
-            format("Straight Check Gardai Chu4"), nl,
+            %format("Straight Check Gardai Chu4"), nl,
             % At this point, the dice doesn't have 4 of a kind or 3 of a kind, so let's see if there is sequence
             ( \+ is_category_filled(Scorecard, 11) -> % Check if Five Straight is filled
                 (hasFiveStraight(DiceValues) -> % If Five Straight is Available to score, score it.
@@ -239,7 +241,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                     NewDiceValues = DiceValues,
                     NewKeptIndices = KeptIndices
                 ;
-                    format("Four Straight Check Gardai Chu1"), nl,
+                    %format("Four Straight Check Gardai Chu1"), nl,
                         % check for four straight
                     % try to get five straight
                     (isFourSequential(DiceValues, FourStraightValues), find_all_indices(DiceValues, FourStraightValues, FourStraightIndices), kept_indices_checker(KeptIndices, FourStraightIndices) ->
@@ -258,9 +260,8 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                 display_keeps(IndicesToKeep2, DiceValues),
                                 reroll_dice(DiceValues, [WildcardIndex], NewDiceValues),
                                 format("New Dice: ~w~n", [NewDiceValues]),
-                                NewKeptIndices = IndicesToKeep2
+                                NewKeptIndices = []
                             ;
-                                format("kinda? to get Five Straight...~n"),
                                 format("Trying to get Five Straight...~n"),
                                 custom_remove([1,2,3,4,5], ThreeStraightIndices, IndicesToReroll),
                                 display_keeps(ThreeStraightIndices, DiceValues),
@@ -314,7 +315,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
                                     ;
                                         % check for 2 of a kind, if yes, maybe full house?
-                                        giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                        giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                         ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                             (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                 format("Trying to get Full House...~n"),
@@ -367,7 +368,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                             NewKeptIndices = KeptIndices
                                         ;   
                                             % check for 2 of a kind, if yes, maybe full house?
-                                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                                giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                                 ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("Trying to get Full House...~n"),
@@ -475,7 +476,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
                                         ;
                                             % check for 2 of a kind, if yes, maybe full house?
-                                            giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                            giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                             ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                 (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                     format("Trying to get Full House...~n"),
@@ -537,7 +538,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
                                         ;   
                                             % check for 2 of a kind, if yes, maybe full house?
-                                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                                giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                                 ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("Trying to get Full House...~n"),
@@ -611,7 +612,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
                             ;
                                 % check for 2 of a kind, if yes, maybe full house?
-                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                 ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                         format("Trying to get Full House...~n"),
@@ -673,7 +674,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
                             ;   
                                 % check for 2 of a kind, if yes, maybe full house?
-                                    giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                    giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                     ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                         (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                             format("Trying to get Full House...~n"),
@@ -700,7 +701,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                     )
                             )
                         ;
-                            format("yetai ho hajue?"), nl,
+                            %format("yetai ho hajue?"), nl,
                             (\+ is_category_filled(Scorecard, 9) -> 
                                 ( hasFullHouse(DiceValues) -> % If there is a Full House
                                     update_scorecard(Scorecard, 9, DiceValues, RoundNum, PlayerID, NewScorecard), 
@@ -731,7 +732,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                 format("New Dice: ~w~n", [NewDiceValues]),
                                                 NewKeptIndices = FullHouseIndices 
                                             ;
-                                                format("Trying to get Full House++...~n"),
+                                                format("Trying to get Full House...~n"),
                                                 custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
                                                 display_keeps(TwoOfAKindIndices, DiceValues),
                                                 reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
@@ -818,40 +819,41 @@ try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
     ).
 
 
-try :-
-    compile('scorecard.pl'),
-    compile('dice.pl'),
-    compile('human.pl'),
-    Scorecard = [
-        ["Ones", 1, 1, 1],
-        ["Twos", 0, 0, 0],
-        ["Threes", 0, 0, 0],
-        ["Fours", 0, 0, 0],
-        ["Fives", 5, 0, 1],
-        ["Sixes", 0, 0, 0],
-        ["Three of a Kind", 0, 0, 0],
-        ["Four of a Kind", 0, 1, 2],
-        ["Full House", 0, 1, 2],
-        ["Four Straight", 0, 1, 3],
-        ["Five Straight", 0, 1, 4],
-        ["Yahtzee", 0, 1, 3]
-    ],
-    RoundNum is 1,
-    format("Scorecard: ~w~n", [Scorecard]),
-    format("Round: ~w~n", [RoundNum]),
-    computer_turn(Scorecard, RoundNum, NewScorecard),
-    computer_turn(NewScorecard, RoundNum, NewScorecard2),
-    computer_turn(NewScorecard2, RoundNum, NewScorecard3),
-    computer_turn(NewScorecard3, RoundNum, NewScorecard4),
-    computer_turn(NewScorecard4, RoundNum, _)
-    .
+% try :-
+%     compile('scorecard.pl'),
+%     compile('dice.pl'),
+%     compile('human.pl'),
+%     Scorecard = [
+%         ["Ones", 1, 1, 1],
+%         ["Twos", 0, 0, 0],
+%         ["Threes", 0, 0, 0],
+%         ["Fours", 0, 0, 0],
+%         ["Fives", 5, 0, 1],
+%         ["Sixes", 0, 0, 0],
+%         ["Three of a Kind", 0, 0, 0],
+%         ["Four of a Kind", 0, 1, 2],
+%         ["Full House", 0, 1, 2],
+%         ["Four Straight", 0, 1, 3],
+%         ["Five Straight", 0, 1, 4],
+%         ["Yahtzee", 0, 1, 3]
+%     ],
+%     RoundNum is 1,
+%     format("Scorecard: ~w~n", [Scorecard]),
+%     format("Round: ~w~n", [RoundNum]),
+%     computer_turn(Scorecard, RoundNum, NewScorecard),
+%     computer_turn(NewScorecard, RoundNum, NewScorecard2),
+%     computer_turn(NewScorecard2, RoundNum, NewScorecard3),
+%     computer_turn(NewScorecard3, RoundNum, NewScorecard4),
+%     computer_turn(NewScorecard4, RoundNum, _)
+%     .
 
 
-hya :-
-    consult('scorecard.pl'),  % Load the file
-    find_wildcard_index([1,2,3,3,5], WildcardIndex),
-    format("Wildcard Index: ~w~n", [WildcardIndex])
-    .
+% hya :-
+%     consult('scorecard.pl'),  % Load the file
+%     %wildcard 
+%     (kept_indices_checker([1,2,3,4,5], [1,2,3,4]) -> format("Kept Good"), nl ; format("Kept Bad"), nl)
+
+%     .
 
 
-%:- initialization(hya).
+% :- initialization(hya).
