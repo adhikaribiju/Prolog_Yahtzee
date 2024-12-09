@@ -71,9 +71,9 @@ update_scorecard_values_helper([], _, []).
 
 % Recursive case: process each row of the scorecard.
 update_scorecard_values_helper([Row|RestScorecard], Values, [UpdatedRow|UpdatedRest]) :-
-    Row = [Category|RestOfRow], % Extract the category and current row data.
+    Row = [Category|_RestOfRow], % Extract the category and current row data.
     (   % Check if the current value is `[0]`.
-        nth0(Index, Values, CurrentValue, RemainingValues),
+        nth0(_Index, Values, CurrentValue, RemainingValues),
         (   CurrentValue = [0]  % If it's `[0]`, skip updating the row.
         ->  %format("Skipping category for Score: 0~n"),
             UpdatedRow = Row % Keep the row unchanged.
@@ -113,7 +113,7 @@ display_scorecard_rows([[Category, Score, Player, Round]|Rest]) :-
 % ask_to_save_game(+Scorecard, +RoundNo)
 % Asks the user if they wish to save the game and takes appropriate action.
 ask_to_save_game(Scorecard, RoundNo) :-
-    write("Do you wish to save the game? (Y/N): "),
+    nl,write("Do you wish to save the game? (Y/N): "),
     read_line_to_string(user_input, Input),
     validate_save_input(Input, Scorecard, RoundNo).
 
@@ -121,12 +121,12 @@ ask_to_save_game(Scorecard, RoundNo) :-
 % Validates the user's input and acts accordingly.
 validate_save_input("Y", Scorecard, RoundNo) :-
     save_to_file(Scorecard, RoundNo),
-    write("Game saved successfully. Exiting the program."), nl,
+    write("Game saved successfully. Exiting the program."), nl,nl,
     halt. % Exit the program.
 validate_save_input("N", _, _) :-
-    write("Game not saved."), nl. % Exit the program.
+    write("Game not saved."), nl, nl. % Exit the program.
 validate_save_input(_, Scorecard, RoundNo) :-
-    write("Invalid input. Please enter Y or N."), nl,
+    write("Invalid input. Please enter Y or N."), nl,nl,
     ask_to_save_game(Scorecard, RoundNo).
 
 

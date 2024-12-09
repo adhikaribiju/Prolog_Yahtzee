@@ -94,7 +94,7 @@ start_game :-
     nl,
     write("Rolling the dice to determine who starts the round.... "), nl,
     write("Enter 'M' for manual or 'R' for random: "), nl,
-    read_input(Method),
+    read_input(Method), nl,
     handle_method(Method).
 
 % Handle input method (manual or random)
@@ -141,15 +141,16 @@ validate_number(N) :-
 
 % Determine the winner or if it's a draw
 determine_toss_winner(P1, P2) :-
+    nl,
     (P1 > P2 ->
-        write("You won!"), nl,
+        write("You won!"), nl, nl,
         start_round(1)
     ;
     P1 < P2 ->
-        write("Computer won!"), nl,
+        write("Computer won!"), nl, nl,
         start_round(2)
     ;
-        write("It's a draw!"), nl,
+        write("It's a draw!"), nl, nl,
         start_game
     ).
 
@@ -177,33 +178,33 @@ play_consecutive_rounds(Scorecard, RoundNum, PlayerID) :-
     write("Starting Consecutive round"), nl,
     (PlayerID =:= 2 ->
         computer_turn(Scorecard, NewRoundNo, TempScorecard),
-        (handle_end_game(TempScorecard, NewRoundNo) ->
-            true
-        ;
-            human_turn(TempScorecard, NewRoundNo, NewScorecard)
-        )
+            (handle_end_game(TempScorecard, NewRoundNo) -> 
+                true, NewScorecard = TempScorecard
+            ;
+                human_turn(TempScorecard, NewRoundNo, NewScorecard))
     ;
         human_turn(Scorecard, NewRoundNo, TempScorecard),
-        (handle_end_game(TempScorecard, NewRoundNo) ->
-            true
+            (handle_end_game(TempScorecard, NewRoundNo) -> 
+                true, NewScorecard = TempScorecard
             ;
-             computer_turn(TempScorecard, NewRoundNo, NewScorecard)
-            )
+                computer_turn(TempScorecard, NewRoundNo, NewScorecard))
     ),
-    ask_to_save_game(NewScorecard, RoundNum),
+    % This block runs only if handle_end_game does not succeed
     (is_scorecard_full(NewScorecard) ->
         write("Game over!"), nl,
         display_final_scores(NewScorecard)
     ;
+        ask_to_save_game(NewScorecard, RoundNum),
         player_with_lowest_score(NewScorecard, NewPlayerID),
-        play_consecutive_rounds(NewScorecard, NewRoundNo,NewPlayerID)
+        play_consecutive_rounds(NewScorecard, NewRoundNo, NewPlayerID)
     ).
 
+
 % check if the scorecard is full
-handle_end_game(Scorecard, RoundNo) :-
+handle_end_game(Scorecard, _RoundNo) :-
     (is_scorecard_full(Scorecard) ->
-        write("Game over!"), nl,
-        display_final_scores(Scorecard),
+        %write("Game over!"), nl,
+        %display_final_scores(Scorecard),
         true
     ;
         false

@@ -28,7 +28,7 @@ get_yes_no_input(Response) :-
 % Recursively gather N dice values between 1 and 6
 get_manual_dice(0, []) :- !.  % Base case: no more dice to gather
 get_manual_dice(N, [Value | Rest]) :-
-    format("Enter value for dice ~d (1-6): ", [N]), nl,
+    format("Enter the dice value (1-6): "), nl,
     read_line_to_string(user_input, Input),
     atom_number(Input, Value),
     ( between(1, 6, Value) -> 

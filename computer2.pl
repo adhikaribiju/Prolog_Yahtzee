@@ -53,8 +53,8 @@ computer_turn(Scorecard, RoundNum, NewScorecard) :-
 % Manage the turn flow with rerolls and scoring
 play_computer_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, NewScorecard) :-
     format("Current Dice: ~w~n", [DiceValues]),
-    display_available_combinations(DiceValues, Scorecard),
-    availableCombinations(DiceValues, AvailableCategories),
+    display_available_combinations(DiceValues, Scorecard), nl,
+    availableCombinations(DiceValues, AvailableCategories), nl,
     (   RerollCount < 2
     ->  ask_roll_or_stand(Decision),
         handle_computer_decision(Decision, DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, AvailableCategories, NewScorecard)
@@ -236,8 +236,8 @@ play_computer_turn_test(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCoun
     format("Current Dice: ~w~n", [DiceValues]),
     NewRerollCount is RerollCount + 1,
     format("Reroll Count: ~w~n", [NewRerollCount]),
-    display_available_combinations(DiceValues, Scorecard),
-    availableCombinations(DiceValues, AvailableCategories),
+    display_available_combinations(DiceValues, Scorecard), nl,
+    availableCombinations(DiceValues, AvailableCategories), nl,
     (   RerollCount < 2
     ->  %ask_roll_or_stand(Decision),
         make_computer_decision_test(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, NewDiceValues, UpdatedScorecard, NewKeptIndices),
@@ -274,8 +274,8 @@ make_computer_decision_test(CategoryScored, DiceValues, KeptIndices, Scorecard, 
     CategoryScored is 0, % default value
     scoreableCombinations(DiceValues, Scorecard, CategoriesAvailableToScore),
     format("Categories Available to Score: ~w~n", [CategoriesAvailableToScore]),
-    get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore),
-    format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]),
+    get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore), nl,
+    format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]), nl,
 
 
 (   is_lower_section_full(Scorecard)

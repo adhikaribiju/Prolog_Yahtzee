@@ -53,8 +53,8 @@ computer_turn(Scorecard, RoundNum, NewScorecard) :-
 % Manage the turn flow with rerolls and scoring
 play_computer_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, NewScorecard) :-
     format("Current Dice: ~w~n", [DiceValues]),
-    display_available_combinations(DiceValues, Scorecard),
-    availableCombinations(DiceValues, AvailableCategories),
+    display_available_combinations(DiceValues, Scorecard), nl,
+    availableCombinations(DiceValues, AvailableCategories), nl,
     (   RerollCount < 2
     ->  ask_roll_or_stand(Decision),
         handle_computer_decision(Decision, DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, AvailableCategories, NewScorecard)
@@ -265,7 +265,7 @@ make_computer_decision_test(CategoryScored, DiceValues, KeptIndices, Scorecard, 
     scoreableCombinations(DiceValues, Scorecard, CategoriesAvailableToScore),
     format("Categories Available to Score: ~w~n", [CategoriesAvailableToScore]),
     get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore),
-    format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]),
+    format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]), nl,
 
     % (   CategoriesAvailableToScore = []
     % ->  % No available categories, try rerolling or return with no score

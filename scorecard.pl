@@ -83,9 +83,6 @@ initialize_scorecard([
     ["Yahtzee", 0, 0, 0]
 ]).
 
-display_available_categories(Scorecard, DiceValues) :-
-    format("Available Categories: ~n"), nl.
-
 
 % Check if there are three of a kind
 hasThreeOfAKind(Dice) :-
@@ -209,8 +206,9 @@ replace([H|T], Index, Element, [H|R]) :-
 % Display available combinations based on Dice using conditional logic
 display_available_combinations(Dice, Scorecard) :-
     %write("Dice: "), write(Dice), nl,
-    write("Available Combinations: "), nl,
+    nl,write("Available Combinations: "), nl, nl,
     findall(Name, (between(1, 12, Index), is_combination_available(Dice, Index, Scorecard, Name)), Names),
+    (Names \= [] -> write("No available combinations to score."), nl),
     maplist(format("Category No: ~w~n"), Names).
 
 % is_combination_available(+Dice, +Index, +Scorecard, -Name)
@@ -253,7 +251,7 @@ update_scorecard(Scorecard, CategoryNum, Dice, RoundNum, PlayerID, NewScorecard)
     % format("Scorecard: ~w~n", [Scorecard]),
     % format("CategoryNum: ~w~n", [CategoryNum]),
     calculate_score(CategoryNum, Dice, Score),
-    format("Score: ~w~n", [Score]),
+    nl, format("Scored ~w points. ~n", [Score]),
     nth1(CategoryNum, Scorecard, CategoryRow),  % Get the row for the category.
     replace(CategoryRow, 2, Score, TempRow),    % Replace the score in the row.
     replace(TempRow, 3, PlayerID, TempRow2),  % Update the PlayerName in the row.
@@ -303,11 +301,12 @@ prompt_category(Scorecard, Dice, AvailableIndices, RoundNum, PlayerID, NewScorec
         (   atom_number(Input, CategoryNum), % Try converting input to a number
             member(CategoryNum, AvailableIndices) % Validate if the number is in available indices
         ->  update_scorecard(Scorecard, CategoryNum, Dice, RoundNum, PlayerID, NewScorecard),  % Update the Scorecard.
-            write("Scorecard updated successfully!"), nl
-        ;   write("Invalid category entered. Please try again."), nl,
+            nl,nl
+            %write("Scorecard updated successfully!"), nl
+        ;   write("Invalid category entered. Please try again."), nl, nl,
             prompt_category(Scorecard, Dice, AvailableIndices, RoundNum, PlayerID, NewScorecard) % Recursive call on invalid input
         )
-    ;   write("No input provided. Please try again."), nl,
+    ;   write("No input provided. Please try again."), nl, nl,
         prompt_category(Scorecard, Dice, AvailableIndices, RoundNum, PlayerID, NewScorecard) % Recursive call if input is empty
     ).
 
@@ -315,9 +314,9 @@ prompt_category(Scorecard, Dice, AvailableIndices, RoundNum, PlayerID, NewScorec
 is_scorecard_full(Scorecard) :-
     \+ (between(1, 12, CategoryNum), \+ is_category_set(Scorecard, CategoryNum)).
 
-calculate_total_score(Scorecard, PlayerID, TotalScore) :-
-    findall(Score, (member([_, Score, Player, _], Scorecard), Player = PlayerID), Scores),
-    calculate_sum(Scores, TotalScore).
+% calculate_total_score(Scorecard, PlayerID, TotalScore) :-
+%     findall(Score, (member([_, Score, Player, _], Scorecard), Player = PlayerID), Scores),
+%     calculate_sum(Scores, TotalScore).
 
 
 calculate_sum([], 0).
@@ -427,20 +426,20 @@ findIndicesHelper([_ | T], Sequence, CurrentIndex, Indices) :-
     NextIndex is CurrentIndex + 1,
     findIndicesHelper(T, Sequence, NextIndex, Indices).
 
-% isThreeSequential(+Dice, -ThreeSequential)
-% Checks if there are three sequential dice values in the list.
-isThreeSequential(Dice, ThreeSequential) :-
-    remove_duplicates(Dice, UniqueDice),
-    sort(UniqueDice, SortedDice),
-    findThreeSequential(SortedDice, ThreeSequential).
+% % isThreeSequential(+Dice, -ThreeSequential)
+% % Checks if there are three sequential dice values in the list.
+% isThreeSequential(Dice, ThreeSequential) :-
+%     remove_duplicates(Dice, UniqueDice),
+%     sort(UniqueDice, SortedDice),
+%     findThreeSequential(SortedDice, ThreeSequential).
 
-% findThreeSequential(+SortedDice, -ThreeSequential)
-% Finds three sequential dice values in a sorted list.
-findThreeSequential([A, B, C | _], [A, B, C]) :-
-    B =:= A + 1,
-    C =:= B + 1.
-findThreeSequential([_ | T], ThreeSequential) :-
-    findThreeSequential(T, ThreeSequential).
+% % findThreeSequential(+SortedDice, -ThreeSequential)
+% % Finds three sequential dice values in a sorted list.
+% findThreeSequential([A, B, C | _], [A, B, C]) :-
+%     B =:= A + 1,
+%     C =:= B + 1.
+% findThreeSequential([_ | T], ThreeSequential) :-
+%     findThreeSequential(T, ThreeSequential).
 
 % isThreeSequential(+Dice, -ThreeSequential)
 % Checks if there are three sequential dice values in the list.
@@ -497,7 +496,7 @@ collectPairsHelper([_ | T], FullList, Seen, Pairs) :-
 % uniqueIndexAmongPairs(+Dice, +Pair1, +Pair2, +Index, -UniqueIndex)
 % Finds the index of the unique element among two distinct pairs.
 uniqueIndexAmongPairs([], _, _, _, -1).  % Base case: no unique element found.
-uniqueIndexAmongPairs([H | T], Pair1, Pair2, Index, UniqueIndex) :-
+uniqueIndexAmongPairs([H | _T], Pair1, Pair2, Index, UniqueIndex) :-
     H \= Pair1,
     H \= Pair2,
     UniqueIndex = Index.
@@ -667,6 +666,89 @@ find_all_indices(DiceValues, [Val|Vals], [Index|Indices]) :-
     find_all_indices(DiceValues, Vals, Indices).
 find_all_indices(DiceValues, [_|Vals], Indices) :-
     find_all_indices(DiceValues, Vals, Indices).
+
+% find_dice_values(+DiceVals, +Indices, -ReturnVal)
+% Extracts values from DiceVals at positions specified in Indices.
+find_dice_values(DiceVals, Indices, ReturnVal) :-
+    findall(Value, (
+        member(Index, Indices),     % Iterate over each index in Indices
+        nth1(Index, DiceVals, Value)  % Get the value at the given index
+    ), ReturnVal).
+
+
+% find_category_name(+CategoryNum, -CategoryName)
+% Maps a category number to its corresponding category name.
+find_category_name(CategoryNum, CategoryName) :-
+    Scorecard = [
+        ["Ones", 1],
+        ["Twos", 2],
+        ["Threes", 3],
+        ["Fours", 4],
+        ["Fives", 5],
+        ["Sixes", 6],
+        ["Three of a Kind", 7],
+        ["Four of a Kind", 8],
+        ["Full House", 9],
+        ["Four Straight", 10],
+        ["Five Straight", 11],
+        ["Yahtzee", 12]
+    ],
+    member([CategoryName, CategoryNum], Scorecard).
+
+
+
+% find_potential_categories(+DiceValues, +Scorecard, +RollCount, -PotentialCategoryList)
+% Determines potential categories based on dice values and roll count.
+find_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategoryList) :-
+    (   RollCount == 0 ->
+        findall(CategoryName,
+            (   between(1, 12, CategoryNum),  % Iterate over categories 1 to 12
+                \+ is_category_filled(Scorecard, CategoryNum),  % Check if category is not filled
+                find_category_name(CategoryNum, CategoryName)  % Get the category name
+            ),
+            PotentialCategoryList)
+    ;   RollCount == 1 ->
+        findall(CategoryName,
+                (   member(CategoryNum, [1,2,3,4,5,6]),  % Check upper section
+                    \+ is_category_filled(Scorecard, CategoryNum),  % Ensure the category is not filled
+                    find_category_name(CategoryNum, CategoryName)  % Map to category name
+                ),
+                PotentialCategoryList1),
+        (   hasThreeOfAKind(DiceValues) ->
+            findall(CategoryName,
+                (   member(CategoryNum, [7, 8, 9, 12]),  % Check categories for Three of a Kind
+                    \+ is_category_filled(Scorecard, CategoryNum),  % Ensure the category is not filled
+                    find_category_name(CategoryNum, CategoryName)  % Map to category name
+                ),
+                PotentialCategoryList2)
+        ;
+            findall(CategoryName,
+                (   member(CategoryNum, [11, 12]),  % Check categories for no Three of a Kind
+                    \+ is_category_filled(Scorecard, CategoryNum),  % Ensure the category is not filled
+                    find_category_name(CategoryNum, CategoryName)  % Map to category name
+                ),
+                PotentialCategoryList2)
+        ), append(PotentialCategoryList1, PotentialCategoryList2, PotentialCategoryList)
+    ;   RollCount == 3 ->
+        scoreableCombinations(DiceValues, Scorecard, CategoriesAvailableToScore),
+        findall(CategoryName,
+            (   member(CategoryNum, CategoriesAvailableToScore),
+                find_category_name(CategoryNum, CategoryName)
+            ),
+            PotentialCategoryList)
+    ).
+
+% display_potential_categories(+DiceValues, +Scorecard, +RollCount, -PotentialCategoryList)
+% Calls find_potential_categories/4 and displays the potential categories.
+display_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategoryList) :-
+    find_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategoryList),
+    nl,write("Potential Categories:"), nl,
+    (   PotentialCategoryList = [] ->
+        write("No potential categories available."), nl
+    ;   forall(member(Category, PotentialCategoryList),
+            format("- ~w~n", [Category]))
+    ),nl,nl.
+
 
 % main predicate to initialize and display the scorecard
 scorecard :-

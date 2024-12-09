@@ -4,10 +4,11 @@
 
 % Main computer turn entry point
 computer_turn(Scorecard, RoundNum, NewScorecard) :-
+    nl,
     PlayerID is 2,
     format("Computer Turn:"), nl,
-    format("Round: ~d~n", [RoundNum]),
-    display_scorecard(Scorecard),
+    format("Round: ~d~n", [RoundNum]), nl,
+    display_scorecard(Scorecard), nl,
     roll_dice(DiceValues),
     (   play_computer_turn(DiceValues, [], Scorecard, RoundNum, 0, NewScorecard, PlayerID)
     ->  format("Working as intended.~n")
@@ -19,8 +20,9 @@ computer_turn(Scorecard, RoundNum, NewScorecard) :-
 play_computer_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, NewScorecard,PlayerID) :-
     format("Current Dice: ~w~n", [DiceValues]),
     NewRerollCount is RerollCount + 1,
-    format("Reroll Count: ~w~n", [NewRerollCount]),
-    display_available_combinations(DiceValues, Scorecard),
+    nl, format("Roll Count: ~w~n", [NewRerollCount]),nl,
+    display_available_combinations(DiceValues, Scorecard), nl,
+    display_potential_categories(DiceValues, Scorecard, RerollCount, PotentialCategoryList),
     (   NewRerollCount =< 2
     ->  % Make a decision
         make_computer_decision(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, DecidedDiceValues, DecidedScorecard, DecidedKeptIndices,PlayerID),
@@ -37,7 +39,8 @@ play_computer_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, Ne
         (   CategoriesAvailableToScore \= []
         ->  find_highest_category(CategoriesAvailableToScore, ScoresOfCategoriesAvailableToScore, HighestCategory),
             update_scorecard(Scorecard, HighestCategory, DiceValues, RoundNum, PlayerID, FinalScorecard),
-            format("Scored Highest Available Category: ~w~n", [HighestCategory]),
+            find_category_name(HighestCategory, CategoryName),
+            format("Scored Highest Available Category: ~w~n", [CategoryName]),
             display_msg(HighestCategory),
             NewScorecard = FinalScorecard
         ;   format("No available categories to score. Skipping turn.~n"),
@@ -49,9 +52,9 @@ play_computer_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, Ne
 % Decide what to do with the current dice based on available categories and full sections
 make_computer_decision(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID) :-
     scoreableCombinations(DiceValues, Scorecard, CategoriesAvailableToScore),
-    format("Categories Available to Score: ~w~n", [CategoriesAvailableToScore]),
-    get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore),
-    format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]),
+    %format("Categories Available to Score: ~w~n", [CategoriesAvailableToScore]),
+    get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore), nl,
+    %format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]), nl,
 
     (   is_lower_section_full(Scorecard)
     ->  format("Lower section is full. Checking the upper section...~n"),
@@ -90,7 +93,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                     % reroll the odd dice to get Yahtzee
                     format("Trying to get Yahtzee...~n"),
                     custom_remove([1,2,3,4,5], FourOfAKindIndices, IndicesToReroll),
-                    display_keeps(FourOfAKindIndices),
+                    display_keeps(FourOfAKindIndices, DiceValues),
                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                     format("New Dice: ~w~n", [NewDiceValues]),
                     NewKeptIndices = FourOfAKindIndices
@@ -111,7 +114,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                 % reroll the odd dice to get Yahtzee
                                 format("Trying to get Yahtzee...~n"),
                                 custom_remove([1,2,3,4,5], ThreeOfAKindIndices, IndicesToReroll),
-                                display_keeps(ThreeOfAKindIndices),
+                                display_keeps(ThreeOfAKindIndices, DiceValues),
                                 reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                 format("New Dice: ~w~n", [NewDiceValues]),
                                 NewKeptIndices = ThreeOfAKindIndices
@@ -138,7 +141,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                 (isFourSequential(DiceValues, FourStraightValues), find_all_indices(DiceValues, FourStraightValues, FourStraightIndices), kept_indices_checker(KeptIndices, FourStraightIndices) ->
                                     format("Trying to get Five Straight...~n"),
                                     custom_remove([1,2,3,4,5], FourStraightIndices, IndicesToReroll),
-                                    display_keeps(FourStraightIndices),
+                                    display_keeps(FourStraightIndices, DiceValues),
                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                     format("New Dice: ~w~n", [NewDiceValues]),
                                     NewKeptIndices = FourStraightIndices
@@ -147,7 +150,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                     (isThreeSequential(DiceValues, ThreeStraightValues), find_all_indices(DiceValues, ThreeStraightValues, ThreeStraightIndices),kept_indices_checker(KeptIndices, ThreeStraightIndices) ->
                                         format("Trying to get Five Straight...~n"),
                                         custom_remove([1,2,3,4,5], ThreeStraightIndices, IndicesToReroll),
-                                        display_keeps(ThreeStraightIndices),
+                                        display_keeps(ThreeStraightIndices, DiceValues),
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         format("New Dice: ~w~n", [NewDiceValues]),
                                         NewKeptIndices = ThreeStraightIndices
@@ -155,7 +158,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         % maybe there is 2 of a kind, but never mind, let's reroll everything
                                         format("Rerolling everything possible to get Yahtze"), nl,
                                         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                        display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         NewKeptIndices = KeptIndices
                                     )
@@ -184,7 +187,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         % maybe there is 2 of a kind, but never mind, let's reroll everything
                                         format("Rerolling everything possible to get Yahtzee"), nl,
                                         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                        display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         NewKeptIndices = KeptIndices
                                         )
@@ -193,7 +196,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                 % At this point, no swquence/of a kind is available, so let's reroll everything
                                 format("Rerolling everything possible to get Yahtze"), nl,
                                 custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                 reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                 NewKeptIndices = KeptIndices
                             )
@@ -223,7 +226,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                     (isFourSequential(DiceValues, FourStraightValues), find_all_indices(DiceValues, FourStraightValues, FourStraightIndices), kept_indices_checker(KeptIndices, FourStraightIndices) ->
                         format("Trying to get Five Straight...~n"),
                         custom_remove([1,2,3,4,5], FourStraightIndices, IndicesToReroll),
-                        display_keeps(FourStraightIndices),
+                        display_keeps(FourStraightIndices, DiceValues),
                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                         format("New Dice: ~w~n", [NewDiceValues]),
                         NewKeptIndices = FourStraightIndices
@@ -232,7 +235,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                         (isThreeSequential(DiceValues, ThreeStraightValues), find_all_indices(DiceValues, ThreeStraightValues, ThreeStraightIndices),kept_indices_checker(KeptIndices, ThreeStraightIndices) ->
                             format("Trying to get Five Straight...~n"),
                             custom_remove([1,2,3,4,5], ThreeStraightIndices, IndicesToReroll),
-                            display_keeps(ThreeStraightIndices),
+                            display_keeps(ThreeStraightIndices, DiceValues),
                             reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                             format("New Dice: ~w~n", [NewDiceValues]),
                             NewKeptIndices = ThreeStraightIndices
@@ -264,7 +267,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                 % reroll the odd dice to get Yahtzee
                                                 format("Trying to get Four of a Kind...~n"),
                                                 custom_remove([1,2,3,4,5], ThreeOfAKindIndices, IndicesToReroll),
-                                                display_keeps(ThreeOfAKindIndices),
+                                                display_keeps(ThreeOfAKindIndices, DiceValues),
                                                 reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                 format("New Dice: ~w~n", [NewDiceValues]),
                                                 NewKeptIndices = ThreeOfAKindIndices
@@ -281,14 +284,14 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                             (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                 format("Trying to get Full House...~n"),
                                                 custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                display_keeps(FullHouseIndices),
+                                                display_keeps(FullHouseIndices, DiceValues),
                                                 reroll_dice(DiceValues, OddIndex, NewDiceValues),
                                                 format("New Dice: ~w~n", [NewDiceValues]),
                                                 NewKeptIndices = TwoOfAKindIndices 
                                             ;
                                                 format("Trying to get Four of a Kind...~n"),
                                                 custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
-                                                display_keeps(TwoOfAKindIndices),
+                                                display_keeps(TwoOfAKindIndices, DiceValues),
                                                 reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                 format("New Dice: ~w~n", [NewDiceValues]),
                                                 NewKeptIndices = TwoOfAKindIndices
@@ -299,7 +302,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                             % reroll all dice
                                             format("Rerolling everything possible to get Four of a Kind"), nl,
                                             custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                            display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                            display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                             reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                             NewKeptIndices = KeptIndices
                                         )
@@ -334,14 +337,14 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("Trying to get Full House...~n"),
                                                         custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                        display_keeps(FullHouseIndices),
+                                                        display_keeps(FullHouseIndices, DiceValues),
                                                         reroll_dice(DiceValues, OddIndex, NewDiceValues),
                                                         format("New Dice: ~w~n", [NewDiceValues]),
                                                         NewKeptIndices = FullHouseIndices 
                                                     ;
                                                         format("Trying to get Three of a Kind...~n"),
                                                         custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
-                                                        display_keeps(TwoOfAKindIndices),
+                                                        display_keeps(TwoOfAKindIndices, DiceValues),
                                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                         format("New Dice: ~w~n", [NewDiceValues]),
                                                         NewKeptIndices = TwoOfAKindIndices                   
@@ -350,7 +353,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                     % reroll all dice
                                                     format("Rerolling everything possible to get Three of a Kind"), nl,
                                                     custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                                    display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                                    display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                     NewKeptIndices = KeptIndices
                                                 )
@@ -359,7 +362,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         % reroll all dice
                                         format("Rerolling everything possible to get Three of a Kind..."), nl,
                                         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                        display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         NewKeptIndices = KeptIndices
                                     )
@@ -417,7 +420,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                     % reroll the odd dice to get Yahtzee
                                                     format("Trying to get Four of a Kind...~n"),
                                                     custom_remove([1,2,3,4,5], ThreeOfAKindIndices, IndicesToReroll),
-                                                    display_keeps(ThreeOfAKindIndices),
+                                                    display_keeps(ThreeOfAKindIndices, DiceValues),
                                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                     format("New Dice: ~w~n", [NewDiceValues]),
                                                     NewKeptIndices = ThreeOfAKindIndices
@@ -433,14 +436,14 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                 (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                     format("Trying to get Full House...~n"),
                                                     custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                    display_keeps(FullHouseIndices),
+                                                    display_keeps(FullHouseIndices, DiceValues),
                                                     reroll_dice(DiceValues, OddIndex, NewDiceValues),
                                                     format("New Dice: ~w~n", [NewDiceValues]),
                                                     NewKeptIndices = FullHouseIndices 
                                                 ;
                                                     format("Trying to get Four of a Kind...~n"),
                                                     custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
-                                                    display_keeps(TwoOfAKindIndices),
+                                                    display_keeps(TwoOfAKindIndices, DiceValues),
                                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                     format("New Dice: ~w~n", [NewDiceValues]),
                                                     NewKeptIndices = TwoOfAKindIndices
@@ -451,7 +454,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                 % reroll all dice
                                                 format("Rerolling everything possible to get Four of a Kind"), nl,
                                                 custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                                display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                                display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                                 reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                 NewKeptIndices = KeptIndices
                                             )
@@ -489,14 +492,14 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("Trying to get Full House...~n"),
                                                         custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                        display_keeps(FullHouseIndices),
+                                                        display_keeps(FullHouseIndices, DiceValues),
                                                         reroll_dice(DiceValues, OddIndex, NewDiceValues),
                                                         format("New Dice: ~w~n", [NewDiceValues]),
                                                         NewKeptIndices = FullHouseIndices 
                                                     ;
                                                         format("Trying to get Three of a Kind??...~n"),
                                                         custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
-                                                        display_keeps(TwoOfAKindIndices),
+                                                        display_keeps(TwoOfAKindIndices, DiceValues),
                                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                         format("New Dice: ~w~n", [NewDiceValues]),
                                                         NewKeptIndices = TwoOfAKindIndices                   
@@ -505,7 +508,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                                     % reroll all dice
                                                     format("Rerolling everything possible to get Three of a Kind==="), nl,
                                                     custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                                    display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                                    display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                                     NewKeptIndices = KeptIndices
                                                 )
@@ -514,7 +517,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         % reroll all dice
                                         format("Rerolling everything possible to get Three of a Kind444"), nl,
                                         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                        display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         NewKeptIndices = KeptIndices
                                     )
@@ -549,7 +552,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                     % reroll the odd dice to get Yahtzee
                                     format("Trying to get Four of a Kind...~n"),
                                     custom_remove([1,2,3,4,5], ThreeOfAKindIndices, IndicesToReroll),
-                                    display_keeps(ThreeOfAKindIndices),
+                                    display_keeps(ThreeOfAKindIndices, DiceValues),
                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                     format("New Dice: ~w~n", [NewDiceValues]),
                                     NewKeptIndices = ThreeOfAKindIndices
@@ -563,14 +566,14 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                         format("Trying to get Full House...~n"),
                                         custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                        display_keeps(FullHouseIndices),
+                                        display_keeps(FullHouseIndices, DiceValues),
                                         reroll_dice(DiceValues, OddIndex, NewDiceValues),
                                         format("New Dice: ~w~n", [NewDiceValues]),
                                         NewKeptIndices = FullHouseIndices 
                                     ;
                                         format("Trying to get Four of a Kind...~n"),
                                         custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
-                                        display_keeps(TwoOfAKindIndices),
+                                        display_keeps(TwoOfAKindIndices, DiceValues),
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         format("New Dice: ~w~n", [NewDiceValues]),
                                         NewKeptIndices = TwoOfAKindIndices
@@ -581,7 +584,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                     % reroll all dice
                                     format("Rerolling everything possible to get Four of a Kind2323"), nl,
                                     custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                    display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                    display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                     NewKeptIndices = KeptIndices
                                 )
@@ -625,14 +628,14 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                             format("Trying to get Full House...~n"),
                                             custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                            display_keeps(FullHouseIndices),
+                                            display_keeps(FullHouseIndices, DiceValues),
                                             reroll_dice(DiceValues, OddIndex, NewDiceValues),
                                             format("New Dice: ~w~n", [NewDiceValues]),
                                             NewKeptIndices = FullHouseIndices 
                                         ;
                                             format("Trying to get Three of a Kind))...~n"),
                                             custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
-                                            display_keeps(TwoOfAKindIndices),
+                                            display_keeps(TwoOfAKindIndices, DiceValues),
                                             reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                             format("New Dice: ~w~n", [NewDiceValues]),
                                             NewKeptIndices = TwoOfAKindIndices                   
@@ -641,7 +644,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         % reroll all dice
                                         format("Rerolling everything possible to get Three of a Kind"), nl,
                                         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                        display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         NewKeptIndices = KeptIndices
                                     )
@@ -662,7 +665,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                     ( hasThreeOfAKind(DiceValues), kept_indices_checker(KeptIndices, ThreeOfAKindIndices) ->
                                     format("Trying to get Full House...~n"),
                                     custom_remove([1,2,3,4,5], ThreeOfAKindIndices, IndicesToReroll),
-                                    display_keeps(ThreeOfAKindIndices),
+                                    display_keeps(ThreeOfAKindIndices, DiceValues),
                                     reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                     format("New Dice: ~w~n", [NewDiceValues]),
                                     NewKeptIndices = ThreeOfAKindIndices        
@@ -675,7 +678,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                             format("Trying to get Full House...~n"),
                                             custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                            display_keeps(FullHouseIndices),
+                                            display_keeps(FullHouseIndices, DiceValues),
                                             reroll_dice(DiceValues, OddIndex, NewDiceValues),
                                             format("New Dice: ~w~n", [NewDiceValues]),
                                             NewKeptIndices = FullHouseIndices 
@@ -683,7 +686,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
                                             format("Trying to get Full House++...~n"),
                                             custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
-                                            display_keeps(TwoOfAKindIndices),
+                                            display_keeps(TwoOfAKindIndices, DiceValues),
                                             reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                             format("New Dice: ~w~n", [NewDiceValues]),
                                             NewKeptIndices = TwoOfAKindIndices                   
@@ -692,7 +695,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         % reroll all dice
                                         format("Rerolling everything possible"), nl,
                                         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                        display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                         NewKeptIndices = KeptIndices
                                     )                                    
@@ -703,7 +706,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                 % reroll all dice
                                 format("Rerolling everything possible to get Full House"), nl,
                                 custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                display_keeps(KeptIndices), % if dice is kept, display the kept indices
+                                display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                 reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
                                 NewKeptIndices = KeptIndices
                             )
@@ -732,10 +735,12 @@ find_highest_category([Category1 | Categories], [Score1 | Scores], ResultCategor
 
 
 display_msg(CategoryScored) :-
-    format("Computer decided to score on Category No: : ~w~n", [CategoryScored]).
+    find_category_name(CategoryScored, CategoryName),
+    format("Computer decided to score on Category: ~w~n", [CategoryName]).
 
-display_keeps(KeptIndices) :-
-    (KeptIndices \= [] -> format("Computer decided to keep positions: ~w~n", [KeptIndices]) ; format("Computer decided to reroll all dices"),nl).
+display_keeps(KeptIndices, DiceValues) :-
+    find_dice_values(DiceValues, KeptIndices, KeptDiceValues),
+    (KeptIndices \= [] -> format("Computer decided to keep these dices: ~w~n", [KeptDiceValues]), nl ; format("Computer decided to reroll all dices"), nl, nl).
 
 
 
@@ -746,7 +751,7 @@ try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
     (   CategoriesAvailableToScore = []
     ->  % No available categories here either
         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-        display_keeps(KeptIndices), % if dice is kept, display the kept indices
+        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
         NewKeptIndices = KeptIndices
     ;   % Pick the best upper category (for simplicity, just do the same logic)
@@ -759,7 +764,7 @@ try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
             NewScorecard = UpdatedScorecard
         ;
             custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-            display_keeps(KeptIndices), % if dice is kept, display the kept indices
+            display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
             reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
             NewKeptIndices = KeptIndices
         )
@@ -795,15 +800,15 @@ try :-
     .
 
 
-hya :-
-    consult('scorecard.pl'),  % Load the file
-    isFourSequential([5, 4, 3, 2, 1], FourStraightIndices),
-    isThreeSequential([1, 2, 3, 4, 5], ThreeStraightIndices),
-    find_all_indices([5, 3, 3, 2, 1], [3,3,5], Indices),  % Ensure this is implemented
-    % Example placeholder for TwoOfaKindIndices (needs implementation)
-    TwoOfaKindIndices = [],  % Define it or calculate it properly
-    format("Four Straight Indices: ~w~n", [Indices]),
-    format("Three Straight Indices: ~w~n", [ThreeStraightIndices]),
-    format("Two of a Kind Indices: ~w~n", [TwoOfaKindIndices]).
+% hya :-
+%     consult('scorecard.pl'),  % Load the file
+%     isFourSequential([5, 4, 3, 2, 1], FourStraightIndices),
+%     isThreeSequential([1, 2, 3, 4, 5], ThreeStraightIndices),
+%     find_all_indices([5, 3, 3, 2, 1], [3,3,5], Indices),  % Ensure this is implemented
+%     % Example placeholder for TwoOfaKindIndices (needs implementation)
+%     TwoOfaKindIndices = [],  % Define it or calculate it properly
+%     format("Four Straight Indices: ~w~n", [Indices]),
+%     format("Three Straight Indices: ~w~n", [ThreeStraightIndices]),
+%     format("Two of a Kind Indices: ~w~n", [TwoOfaKindIndices]).
 
 %:- initialization(try).
