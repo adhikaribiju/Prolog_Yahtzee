@@ -136,15 +136,16 @@ roll_specific_dice(N, [Value | Rest]) :-
     roll_specific_dice(N1, Rest).
 
 
-    % Ask which dice values to reroll, ensuring kept dice are not rerolled
-    ask_reroll_dice_indices(DiceValues, KeptIndices, RerollIndices) :-
-        format("Current dice: ~w~n", [DiceValues]),
-        write("Enter the values of the dice you want to reroll, separated by commas (e.g., 5,4): "),
-        read_line_to_string(user_input, Input),
-        split_string(Input, ",", " ", StringValues),
-        maplist(atom_number, StringValues, DicesToReroll),
+% Ask which dice values to reroll, ensuring kept dice are not rerolled
+ask_reroll_dice_indices(DiceValues, KeptIndices, RerollIndices) :-
+    format("Current dice: ~w~n", [DiceValues]),
+    write("Enter the values of the dice you want to reroll, separated by commas (e.g., 5,4): "),
+    read_line_to_string(user_input, Input),
+    split_string(Input, ",", " ", StringValues),
+    maplist(atom_number, StringValues, DicesToReroll),
+    (   subset(DicesToReroll, DiceValues) ->  
         format("Rerolling dices: ~w~n", [DicesToReroll]),
-        
+
         OriginalKeptIndices = KeptIndices,
         OriginalDiceValues = DiceValues,
         (   find_dices_to_reroll_indices(DiceValues, DicesToReroll, KeptIndices, [], RerollIndices)
@@ -152,28 +153,31 @@ roll_specific_dice(N, [Value | Rest]) :-
         ;   format("Invalid reroll selection. You may try again.~n"),
             ask_reroll_dice_indices(OriginalDiceValues, OriginalKeptIndices, RerollIndices)
         )
-        .
+    ;   
+        format("Invalid dice selection. Please enter a valid dice number.~n"),
+        ask_reroll_dice_indices(DiceValues, KeptIndices, RerollIndices)
+    ).
 
-    % Function to calculate indices of dice to reroll, ensuring kept dice are not rerolled
-    find_dices_to_reroll_indices(DiceValues, DicesToReroll, KeptIndices, CurrentRerollIndices, DicesToRerollInd) :-
-        find_dices_to_reroll_indices_helper(DiceValues, DicesToReroll, KeptIndices, CurrentRerollIndices, DicesToRerollInd).
+% Function to calculate indices of dice to reroll, ensuring kept dice are not rerolled
+find_dices_to_reroll_indices(DiceValues, DicesToReroll, KeptIndices, CurrentRerollIndices, DicesToRerollInd) :-
+    find_dices_to_reroll_indices_helper(DiceValues, DicesToReroll, KeptIndices, CurrentRerollIndices, DicesToRerollInd).
 
-    % Helper function with accumulator, ensuring kept dice are not rerolled
-    find_dices_to_reroll_indices_helper(_, [], _, Acc, Acc). % Base case: No more values to match
-    find_dices_to_reroll_indices_helper(DiceValues, [Reroll|Rest], KeptIndices, Acc, DicesToRerollInd) :-
-        % tempKeptIndices = KeptIndices,
-        % tempDicesToRerollInd = DicesToRerollInd,
-        (   nth1(Index, DiceValues, Reroll), \+ member(Index, Acc), \+ member(Index, KeptIndices)
-        ->  find_dices_to_reroll_indices_helper(DiceValues, Rest, KeptIndices, [Index|Acc], DicesToRerollInd)
-        ;   (   nth1(Index, DiceValues, Reroll), member(Index, KeptIndices)
-            ->  format("Dice already kept, and can't be rerolled.~n"),
-                format("Kept Indices: ~w~n", [KeptIndices]),
-                %format("Dices to Reroll: ~w~n", [DicesToReroll]),
-                false
-            ;   true
-            ),
-            find_dices_to_reroll_indices_helper(DiceValues, Rest, KeptIndices, Acc, DicesToRerollInd)
-        ). % Recursively process the rest
+% Helper function with accumulator, ensuring kept dice are not rerolled
+find_dices_to_reroll_indices_helper(_, [], _, Acc, Acc). % Base case: No more values to match
+find_dices_to_reroll_indices_helper(DiceValues, [Reroll|Rest], KeptIndices, Acc, DicesToRerollInd) :-
+    % tempKeptIndices = KeptIndices,
+    % tempDicesToRerollInd = DicesToRerollInd,
+    (   nth1(Index, DiceValues, Reroll), \+ member(Index, Acc), \+ member(Index, KeptIndices)
+    ->  find_dices_to_reroll_indices_helper(DiceValues, Rest, KeptIndices, [Index|Acc], DicesToRerollInd)
+    ;   (   nth1(Index, DiceValues, Reroll), member(Index, KeptIndices)
+        ->  format("Dice already kept, and can't be rerolled.~n"),
+            %format("Kept Indices: ~w~n", [KeptIndices]),
+            %format("Dices to Reroll: ~w~n", [DicesToReroll]),
+            false
+        ;   true
+        ),
+        find_dices_to_reroll_indices_helper(DiceValues, Rest, KeptIndices, Acc, DicesToRerollInd)
+    ). % Recursively process the rest
 
 
 
@@ -183,7 +187,7 @@ roll_specific_dice(N, [Value | Rest]) :-
 prompt_human_help(DiceValues, KeptIndices, Scorecard, RerollCount) :-
     format("Do you wish to use help (Y/N)? "),
     read_line_to_string(user_input, Response),
-    (   Response = "Y" -> human_help(DiceValues, KeptIndices, Scorecard, RerollCount)
+    (   Response = "Y" -> (human_help(DiceValues, KeptIndices, Scorecard, RerollCount)->true;nl)
     ;   Response = "N" -> true
     ;   format("Invalid response. Please enter Y or N.~n"),
         prompt_human_help(DiceValues, KeptIndices, Scorecard, RerollCount)
@@ -311,7 +315,6 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                             ;
                                 % At this point, no swquence/of a kind is available, so let's reroll everything
                                 format("Rerolling everything possible to get Yahtze"), nl,
-                                
                                 display_roll_msg(KeptIndices, DiceValues)
                             )
                         )
@@ -378,13 +381,12 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
 
                                     ;
                                         % check for 2 of a kind, if yes, maybe full house?
-                                        giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                        giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                         ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                             (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                 format("You may try to get Full House...~n"),
                                                 custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                display_roll_msg(FullHouseIndices, DiceValues),
-                                                reroll_dice(DiceValues, OddIndex, _NewDiceValues)
+                                                display_roll_msg(FullHouseIndices, DiceValues)
                                             ;
                                                 format("You may try to get Four of a Kind...~n"),
                                                 display_roll_msg(TwoOfAKindIndices, DiceValues)
@@ -413,13 +415,12 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                             format("Three of a Kind is available to score. You may score it!~n")
                                         ;   
                                             % check for 2 of a kind, if yes, maybe full house?
-                                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                                giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                                 ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("You may try to get Full House...~n"),
                                                         custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                        display_roll_msg(FullHouseIndices, DiceValues),
-                                                        reroll_dice(DiceValues, OddIndex, _NewDiceValues)
+                                                        display_roll_msg(FullHouseIndices, DiceValues)
                                                     ;
                                                         format("You may try to get Three of a Kind...~n"),
                                                         display_roll_msg(TwoOfAKindIndices, DiceValues)                   
@@ -486,13 +487,12 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
 
                                         ;
                                             % check for 2 of a kind, if yes, maybe full house?
-                                            giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                            giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                             ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                 (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                     format("You may try to get Full House...~n"),
                                                     custom_remove([1,2,3,4,5], OddIndex, FullHouseIndices),
-                                                    display_roll_msg(FullHouseIndices, DiceValues),
-                                                    reroll_dice(DiceValues, OddIndex, _NewDiceValues) 
+                                                    display_roll_msg(FullHouseIndices, DiceValues)
                                                 ;
                                                     format("You may try to get Four of a Kind...~n"),
                                                     display_roll_msg(TwoOfAKindIndices, DiceValues)
@@ -528,7 +528,7 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
 
                                         ;   
                                             % check for 2 of a kind, if yes, maybe full house?
-                                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                                giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                                 ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                                         format("You may try to get Full House...~n"),
@@ -579,7 +579,7 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
 
                             ;
                                 % check for 2 of a kind, if yes, maybe full house?
-                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                 ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                     (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                         format("You may try to get Full House...~n"),
@@ -614,7 +614,7 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                 )
                             ;   
                                 % check for 2 of a kind, if yes, maybe full house?
-                                    giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                    giveTwoOfaKindOrFourIndices(DiceValues, TwoOfAKindIndices),
                                     ( member(Length, [2, 4]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
                                         (checkUniqueAmongPairs(DiceValues, [OddIndex]) ->
                                             format("You may try to get Full House...~n"),

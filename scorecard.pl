@@ -165,7 +165,7 @@ replace([H|T], Index, Element, [H|R]) :-
 % Display available combinations based on Dice using conditional logic
 display_available_combinations(Dice, Scorecard) :-
     %write("Dice: "), write(Dice), nl,
-    nl,write("Available Combinations: "), nl, nl,
+    nl,write("Available Combinations(if any): "), nl, nl,
     findall(Name, (between(1, 12, Index), is_combination_available(Dice, Index, Scorecard, Name)), Names),
     %(Names \= [] -> write("No available combinations to score."), nl),
     maplist(format("Category No: ~w~n"), Names).

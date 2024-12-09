@@ -566,7 +566,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         )
                                     ;
                                         % reroll all dice
-                                        format("Rerolling everything possible to get Three of a Kind444"), nl,
+                                        format("Rerolling everything possible to get Three of a Kind"), nl,
                                         custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
                                         display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
                                         reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),

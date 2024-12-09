@@ -134,7 +134,7 @@ start_round(PlayerID) :-
 % Play consecutive rounds
 play_consecutive_rounds(Scorecard, RoundNum, PlayerID) :-
     NewRoundNo is RoundNum + 1,
-    write("Starting Consecutive round"), nl,
+    %write("Starting Consecutive round"), nl,
     (PlayerID =:= 2 ->
         computer_turn(Scorecard, NewRoundNo, TempScorecard),
             (handle_end_game(TempScorecard, NewRoundNo) -> 
@@ -153,7 +153,7 @@ play_consecutive_rounds(Scorecard, RoundNum, PlayerID) :-
         write("Game over!"), nl,
         display_final_scores(NewScorecard)
     ;
-        ask_to_save_game(NewScorecard, RoundNum),
+        ask_to_save_game(NewScorecard, NewRoundNo),
         player_with_lowest_score(NewScorecard, NewPlayerID),
         play_consecutive_rounds(NewScorecard, NewRoundNo, NewPlayerID)
     ).

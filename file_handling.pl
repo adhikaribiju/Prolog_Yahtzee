@@ -134,10 +134,11 @@ validate_save_input(_, Scorecard, RoundNo) :-
 % save_to_file(+Scorecard, +RoundNo)
 % Saves the Scorecard and RoundNo to a user-specified file in the required format.
 save_to_file(Scorecard, RoundNo) :-
+    NewRoundNo is RoundNo + 1, % Increment the round number
     write("Enter the name of the file (with .txt extension): "),
     read_line_to_string(user_input, FileName), % Get the file name from the user
     convert_scorecard(Scorecard, ProcessedValues), % Process the scorecard into the required format
-    Data = [RoundNo, ProcessedValues], % Combine RoundNo and ProcessedValues
+    Data = [NewRoundNo, ProcessedValues], % Combine RoundNo and ProcessedValues
     open(FileName, write, Stream), % Open the file for writing
     write(Stream, Data), % Write the data to the file
     write(Stream, '.'), % Add a period at the end
