@@ -208,7 +208,7 @@ display_available_combinations(Dice, Scorecard) :-
     %write("Dice: "), write(Dice), nl,
     nl,write("Available Combinations: "), nl, nl,
     findall(Name, (between(1, 12, Index), is_combination_available(Dice, Index, Scorecard, Name)), Names),
-    (Names \= [] -> write("No available combinations to score."), nl),
+    %(Names \= [] -> write("No available combinations to score."), nl),
     maplist(format("Category No: ~w~n"), Names).
 
 % is_combination_available(+Dice, +Index, +Scorecard, -Name)
@@ -748,6 +748,31 @@ display_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategory
     ;   forall(member(Category, PotentialCategoryList),
             format("- ~w~n", [Category]))
     ),nl,nl.
+
+
+
+% find_wildcard_index(+DiceVals, -WildcardIndex)
+% Identifies the position of the wildcard (_) in DiceVals based on given patterns.
+find_wildcard_index(DiceVals, WildcardIndex) :-
+    % Define all valid patterns with their wildcard indices
+    Patterns = [
+        ([1, 2, 3, _, 5], 4),
+        ([2, 3, 4, _, 6], 4),
+        ([1, _, 3, 4, 5], 2),
+        ([2, _, 4, 5, 6], 2)
+    ],
+    % Check if any pattern matches DiceVals
+    member((Pattern, WildcardIndex), Patterns),
+    matches_pattern(DiceVals, Pattern).
+
+% matches_pattern(+DiceVals, +Pattern)
+% Checks if DiceVals matches the pattern, treating _ as any value.
+matches_pattern([], []).
+matches_pattern([D | RestDice], [P | RestPattern]) :-
+    (   var(P) -> true  % If pattern element is a variable (_), match any value
+    ;   D =:= P         % Otherwise, ensure exact match
+    ),
+    matches_pattern(RestDice, RestPattern).
 
 
 % main predicate to initialize and display the scorecard

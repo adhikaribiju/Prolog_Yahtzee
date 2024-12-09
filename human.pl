@@ -21,8 +21,8 @@ human_turn(Scorecard, RoundNum, NewScorecard) :-
 % Manage the turn flow with rerolls and scoring
 play_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, NewScorecard) :-
     format("Current Dice: ~w~n", [DiceValues]),
-    display_available_combinations(DiceValues, Scorecard), nl,
-    display_potential_categories(DiceValues, Scorecard, RerollCount, PotentialCategoryList),
+    (display_available_combinations(DiceValues, Scorecard)-> true; nl),
+    (display_potential_categories(DiceValues, Scorecard, RerollCount, _)->true;format("No potential categories found"),nl),
     availableCombinations(DiceValues, AvailableCategories), nl,
     (prompt_human_help(DiceValues, KeptIndices, Scorecard, RerollCount) -> nl; nl),
     (   RerollCount < 2
