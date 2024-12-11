@@ -82,12 +82,6 @@ manually_reroll_dice(DiceValues, RerollIndices, UpdatedDiceValues) :-
     maplist(read_die_value, RerollIndices, NewValues),
     replace_indices(DiceValues, RerollIndices, NewValues, UpdatedDiceValues).
 
-% Generate random dice values
-% generate_random_dice(0, []) :- !.
-% generate_random_dice(N, [Value | Rest]) :-
-%     random_between(1, 6, Value),
-%     N1 is N - 1,
-%     generate_random_dice(N1, Rest).
 
 % Replace values at specific indices
 replace_indices(DiceValues, RerollIndices, NewValues, UpdatedDiceValues) :-
@@ -112,8 +106,7 @@ ask_reroll_method(Method) :-
 read_die_value(Index, Value) :-
     format("Enter new value for the dice (1-6): "),
     read_line_to_string(user_input, Input),
-    atom_number(Input, Value),
-    (   between(1, 6, Value) -> true
+    (   atom_number(Input, Value), between(1, 6, Value) -> true
     ;   format("Invalid value. You may try again.~n"),
         read_die_value(Index, Value)
     ).
@@ -129,7 +122,8 @@ ask_roll_or_stand(Decision) :-
     ).
 
 
-roll_specific_dice(0, []) :- !.
+roll_specific_dice(0, []) :- 
+    true.  % Base case: no more dice to roll
 roll_specific_dice(N, [Value | Rest]) :-
     random_between(1, 6, Value),
     N1 is N - 1,
@@ -287,10 +281,18 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                         )
                                         
                                     ;
-                                        % maybe there is 2 of a kind, but never mind, let's reroll everything
-                                        format("Rerolling everything possible to get Yahtze"), nl,
+                                        giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                        ( member(Length, [2]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                            format("You may try to get Yahtzee...~n"),
+                                            display_roll_msg(TwoOfAKindIndices, DiceValues)         
+                                        ;   
+                                            format("Rerolling everything possible to get Yahtze"), nl,
+                                            display_roll_msg(KeptIndices, DiceValues)
+                                        )
+                                        % % maybe there is 2 of a kind, but never mind, let's reroll everything
+                                        % format("Rerolling everything possible to get Yahtze"), nl,
                                         
-                                        display_roll_msg(KeptIndices, DiceValues)
+                                        % display_roll_msg(KeptIndices, DiceValues)
                                     )
                                 )
                             )
@@ -306,16 +308,29 @@ check_lower_section(DiceValues, KeptIndices, Scorecard) :-
                                             format("You may try to get Four Straight...~n"),
                                             display_roll_msg(ThreeStraightIndices, DiceValues)
                                         ;
-                                            % maybe there is 2 of a kind, but never mind, let's reroll everything
-                                            format("Rerolling everything possible to get Yahtzee"), nl,
-                                            
-                                            display_roll_msg(KeptIndices, DiceValues)
+                                            giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                            ( member(Length, [2]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                                format("You may try to get Yahtzee...~n"),
+                                                display_roll_msg(TwoOfAKindIndices, DiceValues)         
+                                            ;   
+                                                format("Rerolling everything possible to get Yahtze"), nl,
+                                                display_roll_msg(KeptIndices, DiceValues)
+                                            )
                                         )
                                 )
                             ;
-                                % At this point, no swquence/of a kind is available, so let's reroll everything
-                                format("Rerolling everything possible to get Yahtze"), nl,
-                                display_roll_msg(KeptIndices, DiceValues)
+
+                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                ( member(Length, [2]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                    format("You may try to get Yahtzee...~n"),
+                                    display_roll_msg(TwoOfAKindIndices, DiceValues)         
+                                ;   
+                                    format("Rerolling everything possible to get Yahtze"), nl,
+                                    display_roll_msg(KeptIndices, DiceValues)
+                                )
+                                % % At this point, no swquence/of a kind is available, so let's reroll everything
+                                % format("Rerolling everything possible to get Yahtze"), nl,
+                                % display_roll_msg(KeptIndices, DiceValues)
                             )
                         )
                     

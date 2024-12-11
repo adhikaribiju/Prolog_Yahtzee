@@ -4,7 +4,7 @@
 :-compile('dice.pl').
 :-compile('file_handling.pl').
 
-% Entry point of the program
+% Entry point of the game
 start :-
     display_options,
     read_input_display(Choice), nl,
@@ -24,6 +24,7 @@ read_input_display(Input) :-
     write("Enter your choice: "),
     read_line_to_string(user_input, Input).
 
+% Read user input as a string
 read_input(Input) :-
     read_line_to_string(user_input, Input).
 
@@ -36,8 +37,6 @@ handle_choice("2") :-
     calculate_final_scores(Scorecard, HumanScore, ComputerScore),
     write("Your Score: "), write(HumanScore), nl,
     write("Computer's Score: "), write(ComputerScore), nl, nl,
-    %format("Round Number: ~w~n", [RoundNum]),
-    %display_scorecard(Scorecard), nl,
     nl,
     NewRoundNo is RoundNum - 1,
     player_with_lowest_score(Scorecard, NewPlayerID),
@@ -138,13 +137,13 @@ play_consecutive_rounds(Scorecard, RoundNum, PlayerID) :-
     (PlayerID =:= 2 ->
         computer_turn(Scorecard, NewRoundNo, TempScorecard),
             (handle_end_game(TempScorecard, NewRoundNo) -> 
-                true, NewScorecard = TempScorecard
+                NewScorecard = TempScorecard
             ;
                 human_turn(TempScorecard, NewRoundNo, NewScorecard))
     ;
         human_turn(Scorecard, NewRoundNo, TempScorecard),
             (handle_end_game(TempScorecard, NewRoundNo) -> 
-                true, NewScorecard = TempScorecard
+                NewScorecard = TempScorecard
             ;
                 computer_turn(TempScorecard, NewRoundNo, NewScorecard))
     ),

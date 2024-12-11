@@ -26,12 +26,13 @@ get_yes_no_input(Response) :-
     ).
 
 % Recursively gather N dice values between 1 and 6
-get_manual_dice(0, []) :- !.  % Base case: no more dice to gather
+get_manual_dice(0, []) :- 
+    true.  % Base case: no more dice to gather
 get_manual_dice(N, [Value | Rest]) :-
     format("Enter the dice value (1-6): "), nl,
     read_line_to_string(user_input, Input),
-    atom_number(Input, Value),
-    ( between(1, 6, Value) -> 
+    
+    ( atom_number(Input, Value), between(1, 6, Value) -> 
         N1 is N - 1,
         get_manual_dice(N1, Rest)
     ; 
@@ -40,7 +41,8 @@ get_manual_dice(N, [Value | Rest]) :-
     ).
 
 % Generate N random dice values between 1 and 6
-generate_random_dice(0, []) :- !.  % Base case: no more dice to generate
+generate_random_dice(0, []) :- 
+    true.  % Base case: no more dice to generate
 generate_random_dice(N, [Value | Rest]) :-
     get_random_dice_roll(Value),
     N1 is N - 1,

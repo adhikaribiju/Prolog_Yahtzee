@@ -177,11 +177,21 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                         
                                     ;
                                         % maybe there is 2 of a kind, but never mind, let's reroll everything
-                                        format("Rerolling everything possible to get Yahtze"), nl,
-                                        custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                        display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
-                                        reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
-                                        NewKeptIndices = KeptIndices
+                                        giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                        ( member(Length, [2]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                            format("Trying to get Yahtzee...~n"),
+                                            custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
+                                            display_keeps(TwoOfAKindIndices, DiceValues),
+                                            reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
+                                            format("New Dice: ~w~n", [NewDiceValues]),
+                                            NewKeptIndices = TwoOfAKindIndices
+                                        ;   
+                                            format("Rerolling everything possible to get Yahtzee"), nl,
+                                            custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
+                                            display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
+                                            reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
+                                            NewKeptIndices = KeptIndices
+                                        )
                                     )
                                 )
                             )
@@ -205,21 +215,39 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                             format("New Dice: ~w~n", [NewDiceValues]),
                                             NewKeptIndices = ThreeStraightIndices
                                         ;
-                                            % maybe there is 2 of a kind, but never mind, let's reroll everything
-                                            format("Rerolling everything possible to get Yahtzee"), nl,
-                                            custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                            display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
-                                            reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
-                                            NewKeptIndices = KeptIndices
+                                            giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                            ( member(Length, [2]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                                format("Trying to get Yahtzee...~n"),
+                                                custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
+                                                display_keeps(TwoOfAKindIndices, DiceValues),
+                                                reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
+                                                format("New Dice: ~w~n", [NewDiceValues]),
+                                                NewKeptIndices = TwoOfAKindIndices
+                                            ;   
+                                                format("Rerolling everything possible to get Yahtzee"), nl,
+                                                custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
+                                                display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
+                                                reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
+                                                NewKeptIndices = KeptIndices
+                                            )
                                         )
                                 )
                             ;
-                                % At this point, no swquence/of a kind is available, so let's reroll everything
-                                format("Rerolling everything possible to get Yahtze"), nl,
-                                custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
-                                display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
-                                reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
-                                NewKeptIndices = KeptIndices
+                                giveTwoOfaKindIndices(DiceValues, TwoOfAKindIndices),
+                                ( member(Length, [2]), length(TwoOfAKindIndices, Length), kept_indices_checker(KeptIndices, TwoOfAKindIndices) -> 
+                                    format("Trying to get Yahtzee...~n"),
+                                    custom_remove([1,2,3,4,5], TwoOfAKindIndices, IndicesToReroll),
+                                    display_keeps(TwoOfAKindIndices, DiceValues),
+                                    reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
+                                    format("New Dice: ~w~n", [NewDiceValues]),
+                                    NewKeptIndices = TwoOfAKindIndices
+                                ;   
+                                    format("Rerolling everything possible to get Yahtzee"), nl,
+                                    custom_remove([1,2,3,4,5], KeptIndices, IndicesToReroll),
+                                    display_keeps(KeptIndices, DiceValues), % if dice is kept, display the kept indices
+                                    reroll_dice(DiceValues, IndicesToReroll, NewDiceValues),
+                                    NewKeptIndices = KeptIndices
+                                )
                             )
                         )
                     

@@ -350,7 +350,7 @@ is_category_filled([_ | Rest], CategoryNum) :-
     is_category_filled(Rest, NextCategoryNum).
 
 is_category_filled([[_, 0, _, _] | _], 1) :-
-    !, fail.
+    false.
 
 
 % isFourSequential(+Dice, -FourSequential)
@@ -522,14 +522,15 @@ kept_indices_checker([H | T], List2) :-
 % Reference: none
 % *********************************************************************
 % custom_remove/3: Removes specified elements from a list.
-custom_remove([], _, []) :- !.
+custom_remove([], _, []).  % Base case: empty list results in an empty list
+
 custom_remove([H | T], ItemsToRemove, NewList) :-
-    member(H, ItemsToRemove),
-    !,
-    custom_remove(T, ItemsToRemove, NewList).
-custom_remove([H | T], ItemsToRemove, [H | NewList]) :-
+    member(H, ItemsToRemove),  % If H is in ItemsToRemove, skip it
     custom_remove(T, ItemsToRemove, NewList).
 
+custom_remove([H | T], ItemsToRemove, [H | NewList]) :-
+    \+ member(H, ItemsToRemove),  % If H is not in ItemsToRemove, keep it
+    custom_remove(T, ItemsToRemove, NewList).
 
 % giveFourOfaKindIndices(+Dice, -FourOfAKindIndices)
 % Finds the indices of dice that form a four of a kind.
@@ -556,11 +557,12 @@ giveTwoOfaKindOrFourIndices(Dice, TwoOfAKindIndices) :-
         include(=(Value), Dice, Matches),      % Collect all matches for that value
         length(Matches, Count),
         Count >= 2                             % Ensure at least two occurrences
-    ), [FirstTwoOfAKind | _]),                 % Take the first value with at least two occurrences
+    ), TwoOfAKindCandidates),                  % Collect all values with at least two occurrences
+    TwoOfAKindCandidates = [FirstTwoOfAKind | _], % Take the first value with at least two occurrences
     findIndicess(FirstTwoOfAKind, Dice, 1, AllIndices),
     length(TwoOfAKindIndices, 2),             % Ensure exactly two indices are returned
-    append(TwoOfAKindIndices, _, AllIndices), % Get the first two indices of the value
-    !.                                         % Stop after finding the first two-of-a-kind.
+    append(TwoOfAKindIndices, _, AllIndices). % Get the first two indices of the value
+                                       % Stop after finding the first two-of-a-kind.
 
 % If no two-of-a-kind is found, return an empty list.
 giveTwoOfaKindOrFourIndices(_, []).
@@ -617,8 +619,8 @@ countOccurrences(Value, [_ | Rest], Count) :-
 
 % collect_first_n(+List, +N, -Collected)
 % Collects the first N elements from a list.
-collect_first_n(_, 0, []) :- !.  % Base case: collected required number of elements.
-collect_first_n([], _, []).  % Base case: no more elements to collect.
+collect_first_n(_, 0, []).  % Base case: collected required number of elements
+collect_first_n([], _, []).  % Base case: no more elements to collect
 collect_first_n([H | T], N, [H | Collected]) :-
     N1 is N - 1,
     collect_first_n(T, N1, Collected).
@@ -657,7 +659,6 @@ find_all_indices(DiceValues, [Val|Vals], [Index|Indices]) :-
     find_all_indices(DiceValues, Vals, Indices).
 find_all_indices(DiceValues, [_|Vals], Indices) :-
     find_all_indices(DiceValues, Vals, Indices).
-
 % find_dice_values(+DiceVals, +Indices, -ReturnVal)
 % Extracts values from DiceVals at positions specified in Indices.
 find_dice_values(DiceVals, Indices, ReturnVal) :-
