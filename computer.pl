@@ -1,8 +1,19 @@
 
-%%______________________________MAIN CODE STATS HERE____________________________________________________________%%
 
-
-% Main computer turn entry point
+% Predicate Name: computer_turn/3
+% Description: Simulates the computer's turn in a dice game, updating the scorecard.
+% Parameters:
+%   Scorecard: The current scorecard.
+%   RoundNum: The current round number.
+%   NewScorecard: The updated scorecard after the computer's turn.
+% Algorithm:
+%   1. Display the current game state (round number and scorecard).
+%   2. Generate a set of random dice rolls.
+%   3. Analyze the dice rolls and the current scorecard to determine the best scoring option.
+%   4. Update the scorecard with the chosen scoring option.
+%   5. If no valid scoring option is found, leave the scorecard unchanged. 
+% Reference: None
+% *********************************************************************
 computer_turn(Scorecard, RoundNum, NewScorecard) :-
     nl,
     PlayerID is 2,
@@ -10,15 +21,35 @@ computer_turn(Scorecard, RoundNum, NewScorecard) :-
     format("Round: ~d~n", [RoundNum]), nl,
     display_scorecard(Scorecard), nl,
     roll_dice(DiceValues),
-    (   play_computer_turn(DiceValues, [], Scorecard, RoundNum, 0, NewScorecard, PlayerID)
-    ->  nl %format("Working as intended.~n")
-    ;   format("?~n"),
-        NewScorecard = Scorecard
-        %format("Error: Failed to compute a valid turn.~n"),
-        %format("ani New Scorecard____: ~w~n", [NewScorecard])
-    ).
+    (   play_computer_turn(DiceValues, [], Scorecard, RoundNum, 0, NewScorecard, PlayerID)->  nl;  NewScorecard = Scorecard).
 
-% Recursive logic for the computer turn
+
+% Predicate Name: play_computer_turn/7
+% Description:  Determines and executes the computer's move in a dice game.
+% Parameters:
+%   DiceValues: A list of the current dice values.
+%   KeptIndices: A list of indices of dice to keep (not reroll).
+%   Scorecard: The current scorecard.
+%   RoundNum: The current round number.
+%   RerollCount: The number of times the dice have been rerolled this turn.
+%   NewScorecard: The updated scorecard after the computer's move.
+%   PlayerID:  The ID of the player (in this case, the computer).
+% Algorithm:
+%   1. Display the current dice values and roll count.
+%   2. If available, display a list of possible scoring combinations and potential categories to aim for.
+%   3. If the reroll count is less than or equal to 2:
+%       a. Use a decision-making process (make_computer_decision/9) to choose a scoring category and potentially reroll some dice.
+%       b. If a category is scored (CategoryScored is not 0), update the scorecard with the chosen category.
+%       c. If no category is scored, recursively call play_computer_turn/7 with the updated dice and incremented reroll count.
+%   4. If the reroll count is greater than 2 (no rerolls left):
+%       a. Identify all scoreable combinations based on the current dice and scorecard.
+%       b. Calculate the potential score for each available category.
+%       c. If there are any scoreable categories:
+%           i.  Select the category with the highest potential score.
+%           ii. Update the scorecard with the selected category.
+%       d. If there are no scoreable categories, leave the scorecard unchanged.
+% Reference: None
+% *********************************************************************
 play_computer_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, NewScorecard,PlayerID) :-
     format("Current Dice: ~w~n", [DiceValues]),
     NewRerollCount is RerollCount + 1,
@@ -51,34 +82,78 @@ play_computer_turn(DiceValues, KeptIndices, Scorecard, RoundNum, RerollCount, Ne
     ).
 
 
-% Decide what to do with the current dice based on available categories and full sections
+% Predicate Name: make_computer_decision/9
+% Description:  Decides the computer's move in a dice game, potentially scoring a category or rerolling dice.
+% Parameters:
+%   CategoryScored: An output variable indicating the category scored (0 if none).
+%   DiceValues: A list of the current dice values.
+%   KeptIndices: A list of indices of dice to keep (not reroll).
+%   Scorecard: The current scorecard.
+%   RoundNum: The current round number.
+%   NewDiceValues:  The updated dice values after potential rerolls.
+%   NewScorecard: The updated scorecard after the decision (if a category is scored).
+%   NewKeptIndices: The updated list of kept dice indices.
+%   PlayerID: The ID of the player (in this case, the computer).
+% Algorithm:
+%   1. Check if the lower section of the scorecard is full.
+%      a. If the lower section is full, check if the upper section is also full.
+%          i. If both sections are full, no category can be scored, so set CategoryScored to 0 and leave the scorecard and dice unchanged.
+%         ii. If only the lower section is full, try scoring in the upper section (try_upper_section/9).
+%      b. If the lower section is not full, try scoring in the lower section (try_lower_section/9).
+% Reference: None
+% *********************************************************************
 make_computer_decision(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID) :-
-    %scoreableCombinations(DiceValues, Scorecard, CategoriesAvailableToScore),
-    %format("Categories Available to Score: ~w~n", [CategoriesAvailableToScore]),
-    %get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore), nl,
-    %format("Scores of Categories Available to Score: ~w~n", [ScoresOfCategoriesAvailableToScore]), nl,
-
     (   is_lower_section_full(Scorecard)
-    ->  %format("Lower section is full. Checking the upper section...~n"),
-        (   is_upper_section_full(Scorecard)
-        ->  %format("Both sections full, no scoring possible.~n"),
-            CategoryScored = 0,
+    ->  (   is_upper_section_full(Scorecard)
+        ->  CategoryScored = 0,
             NewScorecard = Scorecard,
             NewDiceValues = DiceValues,
             NewKeptIndices = KeptIndices
-        ;   %format("Trying to fill the upper section...~n"),
-            try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID)
+        ;   try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID)
         )
-    ;   % Lower section not full
-        %format("Trying to fill the lower section...~n"),
-        try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID)
-    )
-
-    
-    .
+    ;   try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID)
+    ).
 
 
-% Attempt to score in the lower section
+
+% Predicate Name: try_lower_section/9
+% Description: Attempts to find a scoring opportunity in the lower section of the scorecard.
+% Parameters:
+%   CategoryScored: An output variable indicating the category scored (0 if none).
+%   DiceValues: A list of the current dice values.
+%   KeptIndices: A list of indices of dice to keep (not reroll).
+%   Scorecard: The current scorecard.
+%   RoundNum: The current round number.
+%   NewDiceValues:  The updated dice values after potential rerolls.
+%   NewScorecard: The updated scorecard after the decision (if a category is scored).
+%   NewKeptIndices: The updated list of kept dice indices.
+%   PlayerID: The ID of the player (in this case, the computer).
+% Algorithm: 
+%  This algorithm prioritizes scoring and achieving Yahtzee, then large straights, then other lower section combinations. 
+%  It attempts to reroll dice strategically to improve the chances of getting these combinations.
+%   1. Check if Yahtzee (category 12) is available on the scorecard:
+%       a. If Yahtzee is available:
+%           i.  If the current dice form a Yahtzee, score it.
+%           ii. If not, try to get a Yahtzee:
+%               * Prioritize keeping four-of-a-kind, then three-of-a-kind, then two-of-a-kind, rerolling other dice.
+%               * If no matching dice, reroll everything.
+%       b. If Yahtzee is not available:
+%           i.  Check if a five straight (category 11) is available:
+%               * If the current dice form a five straight, score it.
+%               * If not, try to get a five straight:
+%                   + Prioritize keeping four sequential dice, then three sequential dice, then a wildcard die with three sequential dice.
+%                   + If no sequence, check for and prioritize keeping four-of-a-kind, then full house, then three-of-a-kind, then two-of-a-kind.
+%                   + If none of the above, reroll everything.
+%           ii. If a five straight is not available, check if a four straight (category 10) is available:
+%               * If the current dice form a four straight, score it.
+%               * If not, try to get a four straight:
+%                   + Prioritize keeping three sequential dice.
+%                   + If no sequence, check for and prioritize keeping four-of-a-kind, then full house, then three-of-a-kind, then two-of-a-kind.
+%                   + If none of the above, reroll everything.
+%           iii. If neither five straight nor four straight is available, proceed with checking for other combinations in a similar manner, prioritizing four-of-a-kind, then full house, then three-of-a-kind.
+%  Throughout the process, if a combination is found that can be scored, the scorecard is updated, and the CategoryScored variable is set accordingly.
+% Reference: None
+% *********************************************************************
 try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID) :-
         % Check if Yahtzee is available
         ( \+ is_category_filled(Scorecard, 12) ->
@@ -259,7 +334,6 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
         ;
            % At this point, Yahtzee is not availble on the scorecard.
             % Let's try sequence then of a kind)
-            %format("Straight Check Gardai Chu4"), nl,
             % At this point, the dice doesn't have 4 of a kind or 3 of a kind, so let's see if there is sequence
             ( \+ is_category_filled(Scorecard, 11) -> % Check if Five Straight is filled
                 (hasFiveStraight(DiceValues) -> % If Five Straight is Available to score, score it.
@@ -269,7 +343,6 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                     NewDiceValues = DiceValues,
                     NewKeptIndices = KeptIndices
                 ;
-                    %format("Four Straight Check Gardai Chu1"), nl,
                         % check for four straight
                     % try to get five straight
                     (isFourSequential(DiceValues, FourStraightValues), find_all_indices(DiceValues, FourStraightValues, FourStraightIndices), kept_indices_checker(KeptIndices, FourStraightIndices) ->
@@ -298,10 +371,7 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
                                 NewKeptIndices = ThreeStraightIndices
                             )
                         ;
-
                             % check for 4 of a kind, full house, 3 of a kind and 2 of a kind
-                        
-                            
                             % check if 4 of a kind is filled
                             ( \+ is_category_filled(Scorecard, 8) -> 
                                 ( hasFourOfAKind(DiceValues) -> % If there is a four of a kind, reroll the odd dice to get Yahtzee
@@ -792,15 +862,28 @@ try_lower_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
 
                 )
             )
-        )
-    .
+        ).
 
 
 
-% Base case: When there's only one category and one score, the result is the category.
-find_highest_category([Category], [_], Category).
 
-% Recursive case: Compare the first score with the maximum score in the rest of the list.
+
+% Predicate Name: find_highest_category/3
+% Description: Finds the category with the highest score from a list of categories and their corresponding scores.
+% Parameters:
+%   Categories: A list of categories.
+%   Scores: A list of scores corresponding to the categories.
+%   ResultCategory: The category with the highest score.
+% Algorithm:
+%   1. Base Case: If there's only one category, return that category as the result.
+%   2. Recursive Case:
+%       a. Recursively find the highest-scoring category from the rest of the list (excluding the first category and score).
+%       b. Compare the score of the first category (Score1) with the score of the highest-scoring category found in the recursive step (TempScore).
+%       c. If Score1 is greater than TempScore, return the first category (Category1) as the result.
+%       d. Otherwise, return the highest-scoring category found in the recursive step (TempCategory) as the result.
+% Reference: None
+% *********************************************************************
+find_highest_category([Category], [_], Category). % Base case: When there's only one category and one score, the result is the category.
 find_highest_category([Category1 | Categories], [Score1 | Scores], ResultCategory) :-
     find_highest_category(Categories, Scores, TempCategory),
     nth0(Index, Categories, TempCategory),
@@ -810,17 +893,60 @@ find_highest_category([Category1 | Categories], [Score1 | Scores], ResultCategor
         ResultCategory = TempCategory).
 
 
+% *********************************************************************
+% Predicate Name: display_msg
+% Purpose: To display the category that the computer scored in
+% Parameters:
+    % CategoryScored: The category that the computer scored in
+% Algorithm:
+    % 1. Find the name of the category that the computer scored in
+    % 2. Display the category that the computer scored in
+% Reference: None
+% *********************************************************************
 display_msg(CategoryScored) :-
     find_category_name(CategoryScored, CategoryName),
     format("Computer decided to score on Category: ~w~n", [CategoryName]).
 
+% *********************************************************************
+% Predicate Name: display_keeps
+% Purpose: To display the indices of the dice that the computer kept
+% Parameters:
+    % KeptIndices: The indices of the dice that the computer kept
+    % DiceValues: The values of the dice
+% Algorithm:
+    % 1. Find the values of the dice that the computer kept
+    % 2. If the computer kept any dice, display the values of the dice
+    % 3. If the computer did not keep any dice, display that the computer decided to reroll all dice
+% Reference: None
+% *********************************************************************
 display_keeps(KeptIndices, DiceValues) :-
     find_dice_values(DiceValues, KeptIndices, KeptDiceValues),
     (KeptIndices \= [] -> format("Computer decided to keep these dices: ~w~n", [KeptDiceValues]), nl ; format("Computer decided to reroll all dices"), nl, nl).
 
 
 
-% Attempt to score in the upper section
+% *********************************************************************
+% Predicate Name: try_upper_section
+% Purpose: To try to score in the upper section of the scorecard
+% Parameters:
+    % CategoryScored: The category that the computer scored in
+    % DiceValues: The values of the dice
+    % KeptIndices: The indices of the dice that the computer kept
+    % Scorecard: The scorecard of the computer
+    % RoundNum: The current round number
+    % NewDiceValues: The new values of the dice after rerolling
+    % NewScorecard: The new scorecard of the computer
+    % NewKeptIndices: The new indices of the dice that the computer kept
+    % PlayerID: The ID of the player
+% Algorithm:
+    % 1. Get the categories that are available to score
+    % 2. Get the scores of the categories available to score
+    % 3. If there are no available categories to score, reroll the dice
+    % 4. If there are available categories to score, pick the best category and score it
+    % 5. If the score is greater than 7, update the scorecard and return the category scored
+    % 6. If the score is less than 7, reroll the dice
+% Reference: None
+% *********************************************************************
 try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, NewDiceValues, NewScorecard, NewKeptIndices,PlayerID) :-
     scoreableCombinations(DiceValues, Scorecard, CategoriesAvailableToScore),
     get_scores_for_categories(CategoriesAvailableToScore, DiceValues, ScoresOfCategoriesAvailableToScore),
@@ -845,43 +971,3 @@ try_upper_section(CategoryScored, DiceValues, KeptIndices, Scorecard, RoundNum, 
             NewKeptIndices = KeptIndices
         )
     ).
-
-
-% try :-
-%     compile('scorecard.pl'),
-%     compile('dice.pl'),
-%     compile('human.pl'),
-%     Scorecard = [
-%         ["Ones", 1, 1, 1],
-%         ["Twos", 0, 0, 0],
-%         ["Threes", 0, 0, 0],
-%         ["Fours", 0, 0, 0],
-%         ["Fives", 5, 0, 1],
-%         ["Sixes", 0, 0, 0],
-%         ["Three of a Kind", 0, 0, 0],
-%         ["Four of a Kind", 0, 1, 2],
-%         ["Full House", 0, 1, 2],
-%         ["Four Straight", 0, 1, 3],
-%         ["Five Straight", 0, 1, 4],
-%         ["Yahtzee", 0, 1, 3]
-%     ],
-%     RoundNum is 1,
-%     format("Scorecard: ~w~n", [Scorecard]),
-%     format("Round: ~w~n", [RoundNum]),
-%     computer_turn(Scorecard, RoundNum, NewScorecard),
-%     computer_turn(NewScorecard, RoundNum, NewScorecard2),
-%     computer_turn(NewScorecard2, RoundNum, NewScorecard3),
-%     computer_turn(NewScorecard3, RoundNum, NewScorecard4),
-%     computer_turn(NewScorecard4, RoundNum, _)
-%     .
-
-
-% hya :-
-%     consult('scorecard.pl'),  % Load the file
-%     %wildcard 
-%     (kept_indices_checker([1,2,3,4,5], [1,2,3,4]) -> format("Kept Good"), nl ; format("Kept Bad"), nl)
-
-%     .
-
-
-% :- initialization(hya).

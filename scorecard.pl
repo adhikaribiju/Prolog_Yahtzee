@@ -1,24 +1,69 @@
 
-% get_player(PlayerID, PlayerName)
-% Maps a player ID to the corresponding player name.
-% get_player(PlayerID, PlayerName)
+
+
+% *********************************************************************
+% Predicate Name: get_player
+% Description: Get the name of the player based on the player ID.
+% Parameters:
+%   - PlayerID: ID of the player.
+%   - PlayerName: Name of the player.
+% Algorithm:
+%   - If the player ID is 1, return "You".
+%   - If the player ID is 2, return "Computer".
+%   - For invalid player IDs, return "X".
+% Reference: None
+% *********************************************************************
 get_player(1, "You").
 get_player(2, "Computer").
 get_player(_, "X").  % For invalid player IDs.
 
-% display_row(Index, Row)
+
+
+% *********************************************************************
+% Predicate Name: display_row
+% Description: Displays a row in the scorecard.
+% Parameters:
+%   - Index: Index of the current row.
+%   - Row: List containing the category, score, player ID, and round number.
+% Algorithm:
+%   - Get the player name from the player ID.
+%   - Display the row with the category, score, player, and round number.
+% Reference: None
+% *********************************************************************
 display_row(Index, [Category, Score, PlayerID, Round]) :-
     get_player(PlayerID, PlayerName),
     format("~t~5|~w~t~15|~w~t~35|~d~t~45|~w~t~55|~d~n", [Index, Category, Score, PlayerName, Round]).
 
-% display_scorecard_helper(Scorecard, Index)
+
+
+% *********************************************************************
+% Predicate Name: display_scorecard_helper
+% Description: Helper predicate to display the scorecard.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - Index: Index of the current row.
+% Algorithm:
+%   - Base case: If the list is empty, return.
+%   - Display the current row and recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 display_scorecard_helper([], _).
 display_scorecard_helper([Row|Rest], Index) :-
     display_row(Index, Row),
     NextIndex is Index + 1,
     display_scorecard_helper(Rest, NextIndex).
 
-% display_scorecard(Scorecard)
+
+
+% *********************************************************************
+% Predicate Name: display_scorecard
+% Description: Displays the scorecard to the user.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+% Algorithm:
+%   - Display the scorecard with the category, score, player, and round number.
+% Reference: None
+% *********************************************************************
 display_scorecard(Scorecard) :-
     format("~nScorecard~n"),
     format("------------------------------------------------------------------------------~n"),
@@ -26,7 +71,17 @@ display_scorecard(Scorecard) :-
     format("------------------------------------------------------------------------------~n"),
     display_scorecard_helper(Scorecard, 1).
 
-% initialize_scorecard(Scorecard)
+
+
+% *********************************************************************
+% Predicate Name: initialize_scorecard
+% Description: Initializes the scorecard with default values.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+% Algorithm:
+%   - Initialize the scorecard with default values.
+% Reference: None
+% *********************************************************************
 initialize_scorecard([
     ["Ones", 0, 0, 0],
     ["Twos", 0, 0, 0],
@@ -43,33 +98,83 @@ initialize_scorecard([
 ]).
 
 
-% Check if there are three of a kind
+
+% *********************************************************************
+% Predicate Name: hasThreeOfAKind
+% Description: Check if there is a three of a kind in the list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+% Algorithm:
+%   - Count the occurrences of each face in the list of dice.
+%   - Check if there is a three of a kind.
+% Reference: None
+% *********************************************************************
 hasThreeOfAKind(Dice) :-
     count_occurrences(Dice, Counts),
     member(Count, Counts),
     Count >= 3.
 
-% Check if there are four of a kind
+
+% *********************************************************************
+% Predicate Name: hasFourOfAKind
+% Description: Check if there is a four of a kind in the list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+% Algorithm:
+%   - Count the occurrences of each face in the list of dice.
+%   - Check if there is a four of a kind.
+% Reference: None
+% *********************************************************************
 hasFourOfAKind(Dice) :-
     count_occurrences(Dice, Counts),
     member(Count, Counts),
     Count >= 4.
 
-% Check if all dice are the same (Yahtzee)
+
+% *********************************************************************
+% Predicate Name: hasYahtzee
+% Description: Check if there is a Yahtzee in the list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+% Algorithm:
+%   - Count the occurrences of each face in the list of dice.
+%   - Check if there is a Yahtzee.
+% Reference: None
+% *********************************************************************
 hasYahtzee(Dice) :-
     count_occurrences(Dice, Counts),
     member(5, Counts).
 
 
-% Check if there's a full house
+
+
+% *********************************************************************
+% Predicate Name: hasFullHouse
+% Description: Check if there is a full house in the list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+% Algorithm:
+%   - Count the occurrences of each face in the list of dice.
+%   - Check if there is a three of a kind and a pair.
+% Reference: None
+% *********************************************************************
 hasFullHouse(Dice) :-
     count_occurrences(Dice, Counts),
     member(3, Counts),
     member(2, Counts).
 
-% Check if there's a four straight (small straight)
-% Check if there's a four straight (small straight) without duplicates
-% Check if there's a four straight (small straight) without duplicates
+
+
+% *********************************************************************
+% Predicate Name: hasFourStraight
+% Description: Check if there is a four straight in the list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+% Algorithm:
+%   - Sort the list of dice.
+%   - Check if the sorted list is a four straight.
+% Reference: None
+% *********************************************************************
 hasFourStraight(Dice) :-
     sort(Dice, SortedDice),
     once((
@@ -78,33 +183,98 @@ hasFourStraight(Dice) :-
         is_sublist([3, 4, 5, 6], SortedDice)
     )).
 
-% Helper predicate to check if one list is a sublist of another
+
+% *********************************************************************
+% Predicate Name: is_sublist
+% Description: Check if a list is a sublist of another list.
+% Parameters:
+%   - Sublist: List to check if it is a sublist.
+%   - List: List to check if it contains the sublist.
+% Algorithm:
+%   - Base case: If the sublist is empty, return true.
+%   - If the heads of the lists match, recur with the rest of the lists.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 is_sublist(Sublist, List) :-
     append(_, Rest, List),
     append(Sublist, _, Rest).
 
 
-% Check if there's a five straight (large straight)
+% *********************************************************************
+% Predicate Name: hasFiveStraight
+% Description: Check if there is a five straight in the list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+% Algorithm:
+%   - Sort the list of dice.
+%   - Check if the sorted list is a five straight.
+% Reference: None
+% *********************************************************************
 hasFiveStraight(Dice) :-
     sort(Dice, SortedDice),
     (SortedDice = [1, 2, 3, 4, 5];
      SortedDice = [2, 3, 4, 5, 6]).
 
-% Calculate score for a specific number in the upper section
+
+
+% *********************************************************************
+% Predicate Name: calculateUpperSectionScore
+% Description: Calculate the score for the upper section of the scorecard.
+% Parameters:
+%   - Number: Number to calculate the score for.
+%   - Dice: List of dice values.
+%   - Score: Calculated score for the number.
+% Algorithm:
+%   - Find all dice that match the number.
+%   - Calculate the sum of the matching dice.
+% Reference: None
+% *********************************************************************
 calculateUpperSectionScore(Number, Dice, Score) :-
     include(==(Number), Dice, MatchingDice),
     sumlist(MatchingDice, Score).
 
 
-% Sum all dice values
+% *********************************************************************
+% Predicate Name: sumAllDice
+% Description: Calculate the sum of all dice values.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Sum: Sum of all dice values.
+% Algorithm:
+%   - Calculate the sum of all dice values and put it in the Sum variable.
+% Reference: None
+% *********************************************************************
 sumAllDice(Dice, Sum) :-
     sumlist(Dice, Sum).
 
-% Determine available combinations to score 
+
+
+% *********************************************************************
+% Predicate Name: availableCombinations
+% Description: Find available combinations to score.
+% Parameters:
+%   - Dice: List of dice values.
+%   - AvailableIndices: List of available combinations to score.
+% Algorithm:
+%   - Find all available combinations and add them to the list.
+% Reference: None
+% *********************************************************************
 availableCombinations(Dice, AvailableIndices) :-
     findall(Index, (between(1, 12, Index), checkCombination(Dice, Index)), AvailableIndices).
 
-% Check if a specific combination index is available
+
+
+% *********************************************************************
+% Predicate Name: checkCombination
+% Description: Check if a combination is available to score.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Index: Index of the category to check.
+% Algorithm:
+%   - Check if the combination is available to score.
+% Reference: None
+% *********************************************************************
 checkCombination(Dice, Index) :-
     ( Index = 1 -> calculateUpperSectionScore(1, Dice, Score), Score > 0;  % Ones
       Index = 2 -> calculateUpperSectionScore(2, Dice, Score), Score > 0;  % Twos
@@ -120,15 +290,36 @@ checkCombination(Dice, Index) :-
       Index = 12 -> hasYahtzee(Dice)                                       % Yahtzee
     ).
 
+
+% *********************************************************************
+% Predicate Name: scoreableCombinations
+% Description: Find available combinations to score.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Scorecard: List of rows in the scorecard.
+%   - ScoreableCombinations: List of available combinations to score.
+% Algorithm:
+%   - Find available combinations.
+%   - Filter out combinations that are already scored.
+% Reference: None
+% *********************************************************************
 scoreableCombinations(Dice, Scorecard, ScoreableCombinations) :-
     availableCombinations(Dice, AvailableIndices),
     findall(Index, (member(Index, AvailableIndices), \+ is_category_set(Scorecard, Index)), ScoreableCombinations).
 
 
-
-
-
-% Check if a list is a sublist of another list
+% *********************************************************************
+% Predicate Name: sublist
+% Description: Check if a list is a sublist of another list.
+% Parameters:
+%   - Sublist: List to check if it is a sublist.
+%   - List: List to check if it contains the sublist.
+% Algorithm:
+%   - Base case: If the sublist is empty, return true.
+%   - If the heads of the lists match, recur with the rest of the lists.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 sublist([], _).
 sublist([H|T1], [H|T2]) :-
     sublist(T1, T2).
@@ -136,33 +327,76 @@ sublist(Sublist, [_|T2]) :-
     sublist(Sublist, T2).
 
 
-% FOR COUNT ONLY
-% count_occurrences(+Dice, -Counts)
-% Dice: List of dice rolls.
-% Counts: List of counts for each face (1 to 6).
+
+% *********************************************************************
+% Predicate Name: count_occurrences
+% Description: Count the occurrences of each face in a list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Counts: List of counts for each face (1 to 6).
+% Algorithm:
+%   - Initialize the counts for each face to 0.
+%   - Count the occurrences of each face in the list of dice.
+% Reference: None
+% *********************************************************************
 count_occurrences(Dice, Counts) :-
     count_each_face(Dice, [0, 0, 0, 0, 0, 0], Counts).
 
-% count_each_face(+Dice, +CurrentCounts, -UpdatedCounts)
-% Dice: List of dice rolls to process.
-% CurrentCounts: Running tally of counts (initialized to [0, 0, 0, 0, 0, 0]).
-% UpdatedCounts: Final tally of counts after processing all dice.
+
+% *********************************************************************
+% Predicate Name: count_each_face
+% Description: Count the occurrences of each face in a list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Counts: List of counts for each face (1 to 6).
+%   - UpdatedCounts: Updated list of counts for each face.
+% Algorithm:
+%   - Base case: If the list of dice is empty, return the counts.
+%   - Get the current count for the face and increment it.
+%   - Replace the current count with the new count.
+%   - Recur with the rest of the dice.
+% Reference: None
+% *********************************************************************
 count_each_face([], Counts, Counts). % Base case: no more dice to process.
 count_each_face([D|Rest], CurrentCounts, UpdatedCounts) :-
     nth1(D, CurrentCounts, CurrentCount),  % Get the current count for face D.
     NewCount is CurrentCount + 1,         % Increment the count for face D.
-    replace(CurrentCounts, D, NewCount, TempCounts), % Update the counts list.
-    count_each_face(Rest, TempCounts, UpdatedCounts). % Recur for the rest of the dice.
+    replace(CurrentCounts, D, NewCount, TempCounts), 
+    count_each_face(Rest, TempCounts, UpdatedCounts). % do the same for rest of the dice.
 
-% replace(+List, +Index, +Element, -NewList)
-% Replace the element at the given 1-based Index with Element in List.
+
+
+% *********************************************************************
+% Predicate Name: replace
+% Description: Replace an element at a specific index in a list.
+% Parameters:
+%   - List: List to update.
+%   - Index: Index to update.
+%   - Element: New element to insert.
+%   - Result: Updated list.
+% Algorithm:
+%   - Base case: If the index is 1, replace the head of the list.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 replace([_|T], 1, Element, [Element|T]).
 replace([H|T], Index, Element, [H|R]) :-
     Index > 1,
     Index1 is Index - 1,
     replace(T, Index1, Element, R).
 
-% Display available combinations based on Dice using conditional logic
+
+% *********************************************************************
+% Predicate Name: display_available_combinations
+% Description: Display available combinations to score.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Scorecard: List of rows in the scorecard.
+% Algorithm:
+%   - Find available combinations.
+%   - Display the available combinations.
+% Reference: None
+% *********************************************************************
 display_available_combinations(Dice, Scorecard) :-
     %write("Dice: "), write(Dice), nl,
     nl,write("Available Combinations(if any): "), nl, nl,
@@ -170,8 +404,21 @@ display_available_combinations(Dice, Scorecard) :-
     %(Names \= [] -> write("No available combinations to score."), nl),
     maplist(format("Category No: ~w~n"), Names).
 
-% is_combination_available(+Dice, +Index, +Scorecard, -Name)
-% Checks if the combination is available and not already scored.
+
+% *********************************************************************
+% Predicate Name: is_combination_available
+% Description: Check if a combination is available to score.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Index: Index of the category to check.
+%   - Scorecard: List of rows in the scorecard.
+%   - Name: Name of the category.
+% Algorithm:
+%   - Check if the category is not already scored.
+%   - Calculate the score for the given category based on the dice.
+%   - Format the name of the category.
+% Reference: None
+% *********************************************************************
 is_combination_available(Dice, Index, Scorecard, Name) :-
     \+ is_category_set(Scorecard, Index), % Ensure the category is not already scored.
     ( Index = 1 -> calculateUpperSectionScore(1, Dice, Score), Score > 0, format(atom(Name), "1. Ones - Score: ~d", [Score]);
@@ -190,8 +437,18 @@ is_combination_available(Dice, Index, Scorecard, Name) :-
 
 
 
-% is_category_set(+Scorecard, +CategoryNum)
-% Checks if the score for the given category is greater than 0.
+% *********************************************************************
+% Predicate Name: is_category_set
+% Description: Check if a category is set in the scorecard.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - CategoryNum: Index of the category to check.
+% Algorithm:
+%   - Get the row for the given category number.
+%   - Extract the score from the second column.
+%   - Ensure the score is instantiated and greater than 0.
+% Reference: None
+% *********************************************************************
 is_category_set(Scorecard, CategoryNum) :-
     nth1(CategoryNum, Scorecard, CategoryRow), % Get the row for the given category number.
     nth1(2, CategoryRow, Score),              % Extract the score from the second column.
@@ -200,25 +457,45 @@ is_category_set(Scorecard, CategoryNum) :-
 
 
 
-% update_scorecard(+Scorecard, +CategoryNum, +Dice)
-% Updates the Scorecard by calculating the score for the given category.
+
+
+% *********************************************************************
+% Predicate Name: update_scorecard
+% Description: Update the scorecard with the score for a specific category.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - CategoryNum: Index of the category to score.
+%   - Dice: List of dice values.
+%   - RoundNum: Current round number.
+%   - PlayerID: ID of the current player.
+%   - NewScorecard: Updated Scorecard after scoring a category.
+% Algorithm:
+%   - Calculate the score for the given category.
+%   - Update the scorecard with the new score.
+% Reference: None
+% *********************************************************************
 update_scorecard(Scorecard, CategoryNum, Dice, RoundNum, PlayerID, NewScorecard) :-
-    % format("Scoring category ~w...~n", [CategoryNum]),
-    % format("Dice: ~w~n", [Dice]),
-    % format("PlayerID: ~w~n", [PlayerID]),
-    % format("RoundNum: ~w~n", [RoundNum]),
-    % format("Scorecard: ~w~n", [Scorecard]),
-    % format("CategoryNum: ~w~n", [CategoryNum]),
     calculate_score(CategoryNum, Dice, Score),
     nl, format("Scored ~w points. ~n", [Score]),
-    nth1(CategoryNum, Scorecard, CategoryRow),  % Get the row for the category.
+    nth1(CategoryNum, Scorecard, CategoryRow),
     replace(CategoryRow, 2, Score, TempRow),    % Replace the score in the row.
-    replace(TempRow, 3, PlayerID, TempRow2),  % Update the PlayerName in the row.
+    replace(TempRow, 3, PlayerID, TempRow2), 
     replace(TempRow2, 4, RoundNum, UpdatedRow),  % Update the Round number in the row.
     replace(Scorecard, CategoryNum, UpdatedRow, NewScorecard). % Update the Scorecard with the new row.
 
-% calculate_score(+CategoryNum, +Dice, -Score)
-% Calculates the score for the given category.
+
+
+% *********************************************************************
+% Predicate Name: calculate_score
+% Description: Calculate the score for a specific category.
+% Parameters:
+%   - CategoryNum: Index of the category to score.
+%   - Dice: List of dice values.
+%   - Score: Calculated score for the category.
+% Algorithm:
+%   - Calculate the score for the given category.
+% Reference: None
+% *********************************************************************
 calculate_score(CategoryNum, Dice, Score) :-
     ( CategoryNum = 1 -> calculateUpperSectionScore(1, Dice, Score);
       CategoryNum = 2 -> calculateUpperSectionScore(2, Dice, Score);
@@ -234,8 +511,24 @@ calculate_score(CategoryNum, Dice, Score) :-
       CategoryNum = 12 -> (hasYahtzee(Dice) -> Score = 50; Score = 0)
     ).
 
-% %ask_category_to_score(+Scorecard, +Dice)
-% Asks the user for a category number to score and updates the Scorecard accordingly.
+
+
+
+% *********************************************************************
+% Predicate Name: ask_category_to_score
+% Description: Asks the user to enter a category number to score.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - Dice: List of dice values.
+%   - RoundNum: Current round number.
+%   - PlayerID: ID of the current player.
+%   - NewScorecard: Updated Scorecard after scoring a category.
+% Algorithm:
+%   - Find available combinations.
+%   - If there are available combinations, prompt the user to enter a category number.
+%   - If there are no available combinations, display a message and return the original Scorecard.
+% Reference: None
+% *********************************************************************
 ask_category_to_score(Scorecard, Dice, RoundNum, PlayerID, NewScorecard) :-
     scoreableCombinations(Dice, Scorecard, AvailableIndices),  % Find available combinations.
     %format("Available categories to score: ~w~n", [AvailableIndices]),
@@ -245,14 +538,41 @@ ask_category_to_score(Scorecard, Dice, RoundNum, PlayerID, NewScorecard) :-
         NewScorecard = Scorecard
     ).
 
-% get_score(dice, Score)
-% Get the score for the dice
+
+
+
+% *********************************************************************
+% Predicate Name: get_score
+% Description: Get the score for a specific category.
+% Parameters:
+%   - CategoryNum: Index of the category to score.
+%   - Dice: List of dice values.
+%   - Score: Calculated score for the category.
+% Algorithm:
+%   - Calculate the score for the given category.
+% Reference: None
+% *********************************************************************
 get_score(CategoryNum, Dice, Score) :-
     calculate_score(CategoryNum, Dice, Score).
 
 
-% prompt_category(+Scorecard, +Dice, +AvailableIndices)
-% Recursively prompts the user for a valid category number.
+
+
+% *********************************************************************
+% Predicate Name: prompt_category
+% Description: Prompts the user to enter a category number to score.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - Dice: List of dice values.
+%   - AvailableIndices: List of available category indices.
+%   - RoundNum: Current round number.
+%   - PlayerID: ID of the current player.
+%   - NewScorecard: Updated Scorecard after scoring a category.
+% Algorithm:
+%   - Ask the user to enter a category number.
+%   - Validate the input and update the Scorecard.
+% Reference: None
+% *********************************************************************
 prompt_category(Scorecard, Dice, AvailableIndices, RoundNum, PlayerID, NewScorecard) :-
     write("Enter the category number to score: "),
     read_line_to_string(user_input, Input),
@@ -269,44 +589,106 @@ prompt_category(Scorecard, Dice, AvailableIndices, RoundNum, PlayerID, NewScorec
         prompt_category(Scorecard, Dice, AvailableIndices, RoundNum, PlayerID, NewScorecard) % Recursive call if input is empty
     ).
 
-% function to check if the scorecard is full
+
+
+% *********************************************************************
+% Predicate Name: is_scorecard_full
+% Description: Checks if the scorecard is full.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+% Algorithm:
+%   - Check if all categories are set.
+% Reference: None
+% *********************************************************************
 is_scorecard_full(Scorecard) :-
     \+ (between(1, 12, CategoryNum), \+ is_category_set(Scorecard, CategoryNum)).
 
-% calculate_total_score(Scorecard, PlayerID, TotalScore) :-
-%     findall(Score, (member([_, Score, Player, _], Scorecard), Player = PlayerID), Scores),
-%     calculate_sum(Scores, TotalScore).
 
 
+
+% *********************************************************************
+% Predicate Name: calculate_sum
+% Description: Calculate the sum of a list of numbers.
+% Parameters:
+%   - List: List of numbers to sum.
+%   - Total: Sum of the numbers.
+% Algorithm:
+%   - Base case: If the list is empty, the sum is 0.
+%   - Calculate the sum of the rest of the list and add the head.
+% Reference: None
+% *********************************************************************
 calculate_sum([], 0).
 calculate_sum([H|T], Total) :-
     calculate_sum(T, SumRest),
     Total is H + SumRest.
 
 
-% find the player with the loweest score
-% find the score of human player, find the score of computer player
-% compare the scores
-% return the player with the lowest score, if the scores are equal, return the human player
+% *********************************************************************
+% Predicate Name: player_with_highest_score
+% Description: Find the player with the highest score.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - PlayerID: ID of the player with the highest score.
+% Algorithm:
+%   - Calculate the total score for each player.
+%   - Compare the total scores and return the player with the highest score.
+% Reference: None
+% *********************************************************************
 player_with_lowest_score(Scorecard, PlayerID) :-
     calculate_total_score(Scorecard, 1, HumanScore),
     calculate_total_score(Scorecard, 2, ComputerScore),
     (HumanScore < ComputerScore -> PlayerID = 1; PlayerID = 2).
 
+
+
+% *********************************************************************
+% Predicate Name: calculate_total_score
+% Description: Calculate the total score for a player.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - PlayerID: ID of the player to calculate the score for.
+%   - TotalScore: Total score for the player.
+% Algorithm:
+%   - Find all scores for the player.
+%   - Calculate the sum of the scores.
+% Reference: None
+% *********************************************************************
 calculate_total_score(Scorecard, PlayerID, TotalScore) :-
     findall(Score, (member([_, Score, Player, _], Scorecard), Player = PlayerID), Scores),
     calculate_sum(Scores, TotalScore).
 
 
-    % get_scores_for_categories(+Categories, +Dice, -Scores)
-    % Given a list of Categories and Dice, return a list of corresponding scores.
-    get_scores_for_categories([], _, []).
-    get_scores_for_categories([CategoryNum|RestCategories], Dice, [Score|RestScores]) :-
-        get_score(CategoryNum, Dice, Score),
-        get_scores_for_categories(RestCategories, Dice, RestScores).
 
 
-% Check if the lower section of the scorecard is full (no score == 0 in lower section categories)
+% *********************************************************************
+% Predicate Name: get_scores_for_categories
+% Description: Get the scores for a list of categories.
+% Parameters:
+%   - Categories: List of category numbers.
+%   - Dice: List of dice values.
+%   - Scores: List of scores for the categories.
+% Algorithm:
+%   - Base case: If the list of categories is empty, return an empty list.
+%   - Get the score for the first category and recur with the rest of the list.
+% Reference: None
+% *********************************************************************
+get_scores_for_categories([], _, []).
+get_scores_for_categories([CategoryNum|RestCategories], Dice, [Score|RestScores]) :-
+    get_score(CategoryNum, Dice, Score),
+    get_scores_for_categories(RestCategories, Dice, RestScores).
+
+
+
+% *********************************************************************
+% Predicate Name: is_lower_section_full
+% Description: Checks if the lower section of the scorecard is full.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+% Algorithm:
+%   - Define the lower section categories.
+%   - Check if all lower section scores are non-zero.
+% Reference: None
+% *********************************************************************
 is_lower_section_full(Scorecard) :-
     % Define the lower section categories
     LowerSection = [
@@ -322,7 +704,17 @@ is_lower_section_full(Scorecard) :-
         member(Category, LowerSection),
         Score =:= 0).
 
-% Check if the upper section of the scorecard is full (no score == 0 in upper section categories)
+
+% *********************************************************************
+% Predicate Name: is_upper_section_full
+% Description: Checks if the upper section of the scorecard is full.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+% Algorithm:
+%   - Define the upper section categories.
+%   - Check if all upper section scores are non-zero.
+% Reference: None
+% *********************************************************************
 is_upper_section_full(Scorecard) :-
     % Define the upper section categories
     UpperSection = [
@@ -339,29 +731,60 @@ is_upper_section_full(Scorecard) :-
         Score =:= 0).
 
 
-% checks if the given category is filled
-% Define the is_category_filled function
+% *********************************************************************
+% Predicate Name: is_category_filled
+% Description: Checks if a category is filled in the scorecard.
+% Parameters:
+%   - Scorecard: List of rows in the scorecard.
+%   - CategoryNum: Index of the category to check.
+% Algorithm:
+%   - Base case: If the list is empty, return false.
+%   - If the score for the category is non-zero, return true.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 is_category_filled([[_, Score, _, _] | _], 1) :-
     Score \= 0.
-
 is_category_filled([_ | Rest], CategoryNum) :-
     CategoryNum > 1,
     NextCategoryNum is CategoryNum - 1,
     is_category_filled(Rest, NextCategoryNum).
-
 is_category_filled([[_, 0, _, _] | _], 1) :-
     false.
 
 
-% isFourSequential(+Dice, -FourSequential)
-% Checks if there are four sequential dice values in the list.
+
+% *********************************************************************
+% Predicate Name: isFourSequential
+% Description: Checks if there are four sequential dice values in the list.
+% Parameters:
+%   - Dice: List of dice values.
+%   - FourSequential: List of four sequential dice values.
+% Algorithm:
+%   - Remove duplicates from the list.
+%   - Sort the list.
+%   - Find four sequential dice values in the sorted list.
+% Reference: None
+% *********************************************************************
 isFourSequential(Dice, FourSequential) :-
     remove_duplicates(Dice, UniqueDice),
     sort(UniqueDice, SortedDice),
     findFourSequential(SortedDice, FourSequential).
 
-% findFourSequential(+SortedDice, -FourSequential)
-% Finds four sequential dice values in a sorted list.
+
+
+% *********************************************************************
+% Predicate Name: findFourSequential
+% Description: Finds four sequential dice values in a sorted list.
+% Parameters:
+%   - SortedDice: Sorted list of dice values.
+%   - FourSequential: List of four sequential dice values.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the first four elements are sequential, return them.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 findFourSequential([A, B, C, D | _], [A, B, C, D]) :-
     B =:= A + 1,
     C =:= B + 1,
@@ -370,13 +793,40 @@ findFourSequential([_ | T], FourSequential) :-
     findFourSequential(T, FourSequential).
 
 
-% findIndicesOfSequence(+Dice, +Sequence, -Indices)
-% Finds the indices of the sequence in the list of dice.
+
+
+% *********************************************************************
+% Predicate Name: findIndicesOfSequence
+% Description: Finds the indices of a sequence in a list.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Sequence: Sequence of dice values to find.
+%   - Indices: List of indices of the sequence in the list.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list matches the head of the sequence, find the indices of the rest of the sequence.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 findIndicesOfSequence(Dice, Sequence, Indices) :-
     findIndicesHelper(Dice, Sequence, 1, Indices).
 
-% findIndicesHelper(+Dice, +Sequence, +CurrentIndex, -Indices)
-% Helper predicate to find the indices of the sequence.
+
+
+% *********************************************************************
+% Predicate Name: findIndicesHelper
+% Description: Helper predicate to find the indices of a sequence in a list.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Sequence: Sequence of dice values to find.
+%   - CurrentIndex: Current index in the list.
+%   - Indices: List of indices of the sequence in the list.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list matches the head of the sequence, find the indices of the rest of the sequence.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 findIndicesHelper(_, [], _, []).
 findIndicesHelper([H | T], [H | SeqT], CurrentIndex, [CurrentIndex | Indices]) :-
     NextIndex is CurrentIndex + 1,
@@ -385,64 +835,134 @@ findIndicesHelper([_ | T], Sequence, CurrentIndex, Indices) :-
     NextIndex is CurrentIndex + 1,
     findIndicesHelper(T, Sequence, NextIndex, Indices).
 
-% % isThreeSequential(+Dice, -ThreeSequential)
-% % Checks if there are three sequential dice values in the list.
-% isThreeSequential(Dice, ThreeSequential) :-
-%     remove_duplicates(Dice, UniqueDice),
-%     sort(UniqueDice, SortedDice),
-%     findThreeSequential(SortedDice, ThreeSequential).
 
-% % findThreeSequential(+SortedDice, -ThreeSequential)
-% % Finds three sequential dice values in a sorted list.
-% findThreeSequential([A, B, C | _], [A, B, C]) :-
-%     B =:= A + 1,
-%     C =:= B + 1.
-% findThreeSequential([_ | T], ThreeSequential) :-
-%     findThreeSequential(T, ThreeSequential).
-
-% isThreeSequential(+Dice, -ThreeSequential)
-% Checks if there are three sequential dice values in the list.
+% *********************************************************************
+% Predicate Name: isThreeSequential
+% Description: Checks if there are three sequential dice values in the list.
+% Parameters:
+%   - Dice: List of dice values.
+%   - ThreeSequential: List of three sequential dice values.
+% Algorithm:
+%   - Remove duplicates from the list.
+%   - Sort the list.
+%   - Find three sequential dice values in the sorted list.
+% Reference: None
+% *********************************************************************
 isThreeSequential(Dice, ThreeSequential) :-
     remove_duplicates(Dice, UniqueDice),
     sort(UniqueDice, SortedDice),
     findThreeSequential(SortedDice, ThreeSequential).
 
-% findThreeSequential(+SortedDice, -ThreeSequential)
-% Finds three sequential dice values in a sorted list.
+
+
+% *********************************************************************
+% Predicate Name: findThreeSequential
+% Description: Finds three sequential dice values in a sorted list.
+% Parameters:
+%   - SortedDice: Sorted list of dice values.
+%   - ThreeSequential: List of three sequential dice values.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the first three elements are sequential, return them.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 findThreeSequential([A, B, C | _], [A, B, C]) :-
     B =:= A + 1,
     C =:= B + 1.
 findThreeSequential([_ | T], ThreeSequential) :-
     findThreeSequential(T, ThreeSequential).
 
-% isTwoSequential(+Dice, -TwoSequential)
-% Checks if there are two sequential dice values in the list.
+
+
+% *********************************************************************
+% Predicate Name: isTwoSequential
+% Description: Checks if there are two sequential dice values in the list.
+% Parameters:
+%   - Dice: List of dice values.
+%   - TwoSequential: List of two sequential dice values.
+% Algorithm:
+%   - Remove duplicates from the list.
+%   - Sort the list.
+%   - Find two sequential dice values in the sorted list.
+% Reference: None
+% *********************************************************************
 isTwoSequential(Dice, TwoSequential) :-
     remove_duplicates(Dice, UniqueDice),
     sort(UniqueDice, SortedDice),
     findTwoSequential(SortedDice, TwoSequential).
 
-% findTwoSequential(+SortedDice, -TwoSequential)
-% Finds two sequential dice values in a sorted list.
+
+
+% *********************************************************************
+% Predicate Name: findTwoSequential
+% Description: Finds two sequential dice values in a sorted list.
+% Parameters:
+%   - SortedDice: Sorted list of dice values.
+%   - TwoSequential: List of two sequential dice values.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the first two elements are sequential, return them.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 findTwoSequential([A, B | _], [A, B]) :-
     B =:= A + 1.
 findTwoSequential([_ | T], TwoSequential) :-
     findTwoSequential(T, TwoSequential).
 
 
-% checkUniqueAmongPairs(+Dice, -UniqueIndex)
-% Checks if there is a unique element among two distinct pairs.
+
+
+% *********************************************************************
+% Predicate Name: checkUniqueAmongPairs
+% Description: Checks if a value is unique among two distinct pairs.
+% Parameters:
+%   - Dice: List of dice values.
+%   - UniqueIndex: Index of the unique value.
+% Algorithm:
+%   - Collect pairs of dice values.
+%   - Ensure there are exactly two distinct pairs.
+%   - Find the index of the unique value among the pairs.
+% Reference: None
+% *********************************************************************
 checkUniqueAmongPairs(Dice, UniqueIndex) :-
     collectPairs(Dice, Pairs),
     length(Pairs, 2),  % Ensure there are exactly two distinct pairs.
     Pairs = [Pair1, Pair2],
     uniqueIndexAmongPairs(Dice, Pair1, Pair2, 1, UniqueIndex).
 
-% collectPairs(+Dice, -Pairs)
+
+
+% *********************************************************************
+% Predicate Name: collectPairs
+% Description: Collects pairs of dice values from a list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Pairs: List of pairs of dice values.
+% Algorithm:
+%   - Find all values with exactly two occurrences.
+%   - Collect the first two occurrences of each value.
+% Reference: None
+% *********************************************************************
 collectPairs(Dice, Pairs) :-
     collectPairsHelper(Dice, Dice, [], Pairs).
 
-% collectPairsHelper(+Remaining, +FullList, +Seen, -Pairs)
+
+% *********************************************************************
+% Predicate Name: collectPairsHelper
+% Description: Helper predicate to collect pairs from a list of dice.
+% Parameters:
+%   - Dice: List of dice values.
+%   - FullList: Full list of dice values.
+%   - Seen: List of dice values already seen.
+%   - Pairs: List of pairs of dice values.
+% Algorithm:
+%   - Base case: If the list is empty, return the list of pairs.
+%   - If the head of the list has exactly two occurrences and has not been seen before, add it to the list of pairs.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 collectPairsHelper([], _, Pairs, Pairs).
 collectPairsHelper([H | T], FullList, Seen, Pairs) :-
     count_occurrences(H, FullList, Count),
@@ -452,8 +972,20 @@ collectPairsHelper([_ | T], FullList, Seen, Pairs) :-
     collectPairsHelper(T, FullList, Seen, Pairs).
 
 
-% uniqueIndexAmongPairs(+Dice, +Pair1, +Pair2, +Index, -UniqueIndex)
-% Finds the index of the unique element among two distinct pairs.
+% *********************************************************************
+% Predicate Name: uniqueIndexAmongPairs
+% Description: Finds the index of a unique element among two distinct pairs.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Pair1: First pair of dice values.
+%   - Pair2: Second pair of dice values.
+%   - Index: Current index in the list.
+%   - UniqueIndex: Index of the unique element.
+% Algorithm:
+%   - Base case: If the list is empty, return -1.
+%   - If the head of the list is not in either pair, it is unique.
+% Reference: None
+% *********************************************************************
 uniqueIndexAmongPairs([], _, _, _, -1).  % Base case: no unique element found.
 uniqueIndexAmongPairs([H | _T], Pair1, Pair2, Index, UniqueIndex) :-
     H \= Pair1,
@@ -463,8 +995,20 @@ uniqueIndexAmongPairs([_ | T], Pair1, Pair2, Index, UniqueIndex) :-
     NextIndex is Index + 1,
     uniqueIndexAmongPairs(T, Pair1, Pair2, NextIndex, UniqueIndex).
 
-% remove_duplicates(+List, -UniqueList)
-% Removes duplicate elements from a list.
+
+
+% *********************************************************************
+% Predicate Name: remove_duplicates
+% Description: Removes duplicate elements from a list.
+% Parameters:
+%   - List: List to remove duplicates from.
+%   - Result: List with duplicates removed.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list is not in the tail, keep it.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 remove_duplicates([], []).
 remove_duplicates([H | T], [H | Result]) :-
     \+ member(H, T),
@@ -473,8 +1017,20 @@ remove_duplicates([_ | T], Result) :-
     remove_duplicates(T, Result).
 
 
-% count_occurrences(+Element, +List, -Count)
-% Counts the occurrences of an element in a list.
+
+% *********************************************************************
+% Predicate Name: count_occurrences
+% Description: Counts the occurrences of an element in a list.
+% Parameters:
+%   - Elem: Element to count.
+%   - List: List to search.
+%   - Count: Number of occurrences of the element.
+% Algorithm:
+%   - Base case: If the list is empty, return 0.
+%   - If the head of the list matches the element, increment the count.
+%   - Recur with the rest of the list.
+% Reference: None
+% *********************************************************************
 count_occurrences(_, [], 0).
 count_occurrences(Elem, [Elem | T], Count) :-
     count_occurrences(Elem, T, SubCount),
@@ -484,22 +1040,18 @@ count_occurrences(Elem, [_ | T], Count) :-
 
 
 
-% *********************************************************************
-% Function Name: keptIndicesChecker
-% Purpose: To check if the kept indices are valid.
-% Parameters: list1 (list) - The list of kept indices.
-%             list2 (list) - The list of all indices.
-% Return Value: True if all kept indices are valid, else false.
-% Algorithm:
-% 1. Check if the list1 is empty.
-% 2. If list1 is empty, return true (no common elements found).
-% 3. Check if the first element of list1 is in list2.
-% 4. If an element of list1 is in list2, return false.
-% 5. Recur with the rest of list1.
-% Reference: none
-% *********************************************************************
 
-% Base case: If the first list (list1) is empty, it is valid, so return true.
+% *********************************************************************
+% Predicate Name: kept_indices_checker
+% Description: Checks if the indices in list1 are kept in list2.
+% Parameters:
+%   - List1: List of indices to check.
+%   - List2: List of indices to check against.
+% Algorithm:
+%   - Base case: If the first list is empty, return true.
+%   - If the first element of list1 is found in list2, continue checking the rest of list1.
+% Reference: None
+% *********************************************************************
 kept_indices_checker([], _).
 % Recursive case: If the first element of list1 is found in list2, continue checking the rest of list1.
 kept_indices_checker([H | T], List2) :-
@@ -507,50 +1059,88 @@ kept_indices_checker([H | T], List2) :-
     kept_indices_checker(T, List2).  % Recur with the rest of list1.
 
 
-% *********************************************************************
-% Function Name: custom_remove
-% Purpose: To remove specific elements from a list.
-% Parameters: lst (list) - The list to remove elements from.
-%             items_to_remove (list) - The list of elements to remove.
-% Return Value: A list with the specified elements removed.
-% Algorithm:
-% 1. Check if the list is empty.
-% 2. If the list is empty, return an empty list.
-% 3. Check if the first element is in the items_to_remove list.
-% 4. If the element is in the items_to_remove list, skip it and continue with the rest of the list.
-% 5. If the element is not in the items_to_remove list, keep it and continue with the rest of the list.
-% Reference: none
-% *********************************************************************
-% custom_remove/3: Removes specified elements from a list.
-custom_remove([], _, []).  % Base case: empty list results in an empty list
 
+% *********************************************************************
+% Predicate Name: custom_remove
+% Description: Removes elements from a list.
+% Parameters:
+%   - List: List to remove elements from.
+%   - ItemsToRemove: List of elements to remove.
+%   - NewList: List with elements removed.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list is in ItemsToRemove, skip it.
+%   - If the head of the list is not in ItemsToRemove, keep it.
+% Reference: None
+% *********************************************************************
+custom_remove([], _, []). 
 custom_remove([H | T], ItemsToRemove, NewList) :-
     member(H, ItemsToRemove),  % If H is in ItemsToRemove, skip it
     custom_remove(T, ItemsToRemove, NewList).
-
 custom_remove([H | T], ItemsToRemove, [H | NewList]) :-
     \+ member(H, ItemsToRemove),  % If H is not in ItemsToRemove, keep it
     custom_remove(T, ItemsToRemove, NewList).
 
-% giveFourOfaKindIndices(+Dice, -FourOfAKindIndices)
-% Finds the indices of dice that form a four of a kind.
+
+
+
+% *********************************************************************
+% Predicate Name: giveFourOfaKindIndices
+% Description: Finds the indices of dice that form a four of a kind.
+% Parameters:
+%   - Dice: List of dice values.
+%   - FourOfAKindIndices: List of indices of dice that form a four of a kind.
+% Algorithm:
+%   - Find all values with exactly four occurrences.
+%   - Find the first four indices of the value.
+% Reference: None
+% *********************************************************************
 giveFourOfaKindIndices(Dice, FourOfAKindIndices) :-
     findMatchingIndices(Dice, 4, FourOfAKindIndices).
 
 
-% giveThreeOfaKindIndices(+Dice, -ThreeOfAKindIndices)
-% Finds the indices of dice that form a three of a kind.
+
+% *********************************************************************
+% Predicate Name: giveThreeOfaKindIndices
+% Description: Finds the indices of dice that form a three of a kind.
+% Parameters:
+%   - Dice: List of dice values.
+%   - ThreeOfAKindIndices: List of indices of dice that form a three of a kind.
+% Algorithm:
+%   - Find all values with exactly three occurrences.
+%   - Find the first three indices of the value.
+% Reference: None
+% *********************************************************************
 giveThreeOfaKindIndices(Dice, ThreeOfAKindIndices) :-
     findMatchingIndices(Dice, 3, ThreeOfAKindIndices).
 
 
-% % giveTwoOfaKindIndices(+Dice, -TwoOfAKindIndices)
-% % Finds the indices of dice that form a two of a kind.
+% *********************************************************************
+% Predicate Name: giveTwoOfaKindIndices
+% Description: Finds the indices of dice that form a two of a kind.
+% Parameters:
+%   - Dice: List of dice values.
+%   - TwoOfAKindIndices: List of indices of dice that form a two of a kind.
+% Algorithm:
+%   - Find all values with exactly two occurrences.
+%   - Find the first two indices of the value.
+% Reference: None
+% *********************************************************************
 giveTwoOfaKindIndices(Dice, TwoOfAKindIndices) :-
     findMatchingIndices(Dice, 2, TwoOfAKindIndices).
 
-% giveTwoOfaKindIndices(+Dice, -TwoOfAKindIndices)
-% Finds the indices of the first two-of-a-kind in Dice.
+% *********************************************************************
+% Predicate Name: giveTwoOfaKindOrFourIndices
+% Description: Finds the indices of dice that form a two of a kind or a four of a kind.
+% Parameters:
+%   - Dice: List of dice values.
+%   - TwoOfAKindIndices: List of indices of dice that form a two of a kind.
+% Algorithm:
+%   - Find all values with at least two occurrences.
+%   - Take the first value with at least two occurrences.
+%   - Find the first two indices of the value.
+% Reference: None
+% *********************************************************************
 giveTwoOfaKindOrFourIndices(Dice, TwoOfAKindIndices) :-
     findall(Value, (
         member(Value, Dice),                   % Iterate over each value in Dice
@@ -562,13 +1152,24 @@ giveTwoOfaKindOrFourIndices(Dice, TwoOfAKindIndices) :-
     findIndicess(FirstTwoOfAKind, Dice, 1, AllIndices),
     length(TwoOfAKindIndices, 2),             % Ensure exactly two indices are returned
     append(TwoOfAKindIndices, _, AllIndices). % Get the first two indices of the value
-                                       % Stop after finding the first two-of-a-kind.
-
-% If no two-of-a-kind is found, return an empty list.
 giveTwoOfaKindOrFourIndices(_, []).
 
-% findIndices(+Value, +Dice, +StartIndex, -Indices)
-% Finds all indices of Value in Dice starting from StartIndex.
+
+
+% *********************************************************************
+% Predicate Name: findIndicess
+% Description: Finds the indices of a value in a list.
+% Parameters:
+%   - Value: Value to find indices of.
+%   - List: List to find indices in.
+%   - Index: Current index in the list.
+%   - Indices: List of indices of the value.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list matches the value, add its index to the list.
+%   - If the head of the list does not match the value, skip it.
+% Reference: None
+% *********************************************************************
 findIndicess(_, [], _, []).  % Base case: empty Dice, no indices.
 findIndicess(Value, [Value | Rest], Index, [Index | Indices]) :-
     NextIndex is Index + 1,
@@ -580,17 +1181,37 @@ findIndicess(Value, [_ | Rest], Index, Indices) :-
 
 
 
-
-
-
-% findMatchingIndices(+Dice, +MatchCount, -MatchingIndices)
-% Finds the indices of dice values that match a specific count.
+% *********************************************************************
+% Predicate Name: findMatchingIndices
+% Description: Finds the indices of dice values that match a specific count.
+% Parameters:
+%   - Dice: List of dice values.
+%   - MatchCount: Number of occurrences to match.
+%   - MatchingIndices: List of indices of dice values that match the count.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list matches the required count, add its indices to the list.
+%   - If the head of the list does not match the required count, skip it.
+% Reference: None
+% *********************************************************************
 findMatchingIndices(Dice, MatchCount, MatchingIndices) :-
     findMatchingIndicesHelper(Dice, Dice, MatchCount, [], MatchingIndices).
 
-% Helper predicate for findMatchingIndices
-findMatchingIndicesHelper([], _, _, _, []).  % Base case: no remaining dice.
 
+% *********************************************************************
+% Predicate Name: findMatchingIndicesHelper
+% Description: Finds the indices of dice values that match a specific count.
+% Parameters:
+%   - Dice: List of dice values.
+%   - MatchCount: Number of occurrences to match.
+%   - MatchingIndices: List of indices of dice values that match the count.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list matches the required count, add its indices to the list.
+%   - If the head of the list does not match the required count, skip it.
+% Reference: None
+% *********************************************************************
+findMatchingIndicesHelper([], _, _, _, []).  % Base case: no remaining dice.
 findMatchingIndicesHelper([Value | Rest], Dice, MatchCount, SeenValues, MatchingIndices) :-
     countOccurrences(Value, Dice, Occurrences),
     \+ member(Value, SeenValues),  % Ensure the value has not already been processed.
@@ -599,68 +1220,130 @@ findMatchingIndicesHelper([Value | Rest], Dice, MatchCount, SeenValues, Matching
     collect_first_n(Indices, MatchCount, CollectedIndices),
     findMatchingIndicesHelper(Rest, Dice, MatchCount, [Value | SeenValues], RemainingIndices),
     append(CollectedIndices, RemainingIndices, MatchingIndices).
-
 findMatchingIndicesHelper([Value | Rest], Dice, MatchCount, SeenValues, MatchingIndices) :-
     (member(Value, SeenValues); countOccurrences(Value, Dice, Occurrences), Occurrences < MatchCount),
     findMatchingIndicesHelper(Rest, Dice, MatchCount, SeenValues, MatchingIndices).
 
 
 
-% countOccurrences(+Value, +Dice, -Count)
-% Counts the occurrences of a specific value in a list of dice.
+% *********************************************************************
+% Predicate Name: countOccurrences
+% Description: Counts the occurrences of a value in a list.
+% Parameters:
+%   - Value: Value to count occurrences of.
+%   - List: List to count occurrences in.
+%   - Count: Number of occurrences of the value.
+% Algorithm:
+%   - Base case: If the list is empty, return 0.
+%   - If the head of the list matches the value, increment the count.
+%   - If the head of the list does not match the value, skip it.
+% Reference: None
+% *********************************************************************
 countOccurrences(_, [], 0).  % Base case: empty list.
-
 countOccurrences(Value, [Value | Rest], Count) :-
     countOccurrences(Value, Rest, SubCount),
     Count is SubCount + 1.
-
 countOccurrences(Value, [_ | Rest], Count) :-
     countOccurrences(Value, Rest, Count).
 
-% collect_first_n(+List, +N, -Collected)
-% Collects the first N elements from a list.
+
+
+% *********************************************************************
+% Predicate Name: collect_first_n
+% Description: Collects the first N elements from a list.
+% Parameters:
+%   - List: List to collect elements from.
+%   - N: Number of elements to collect.
+%   - Collected: List of collected elements.
+% Algorithm:
+%   - Base case: If the list is empty or N is 0,, return an empty list.
+%   - If N is greater than 0, collect the first element and recur with N-1.
+% Reference: None
+% *********************************************************************
 collect_first_n(_, 0, []).  % Base case: collected required number of elements
 collect_first_n([], _, []).  % Base case: no more elements to collect
 collect_first_n([H | T], N, [H | Collected]) :-
     N1 is N - 1,
     collect_first_n(T, N1, Collected).
 
-% findIndices(+Value, +Dice, +Index, -Indices)
-% Finds the indices of a specific value in a list of dice.
-findIndices(_, [], _, []).  % Base case: empty list.
 
+
+% *********************************************************************
+% Predicate Name: findIndices
+% Description: Finds the indices of a value in a list.
+% Parameters:
+%   - Value: Value to find indices of.
+%   - List: List to find indices in.
+%   - Index: Current index in the list.
+%   - Indices: List of indices of the value.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list matches the value, add its index to the list.
+%   - If the head of the list does not match the value, skip it.
+% Reference: None
+% *********************************************************************
+findIndices(_, [], _, []).  % Base case: empty list.
 findIndices(Value, [Value | Rest], Index, [Index | Indices]) :-
     NextIndex is Index + 1,
     findIndices(Value, Rest, NextIndex, Indices).
-
 findIndices(Value, [_ | Rest], Index, Indices) :-
     NextIndex is Index + 1,
     findIndices(Value, Rest, NextIndex, Indices).
 
 
-% removeValue(+Value, +Dice, -RemainingDice)
-% Removes all occurrences of a specific value from a list.
+% *********************************************************************
+% Predicate Name: removeValue
+% Description: Removes a specific value from a list.
+% Parameters:
+%   - Value: Value to remove.
+%   - List: List to remove the value from.
+%   - RemainingDice: List with the value removed.
+% Algorithm:
+%   - Base case: If the list is empty, return an empty list.
+%   - If the head of the list matches the value, skip it.
+%   - If the head of the list does not match the value, keep it.
+% Reference: None
+% *********************************************************************
 removeValue(_, [], []).  % Base case: empty list.
-
 removeValue(Value, [Value | Rest], RemainingDice) :-
     removeValue(Value, Rest, RemainingDice).
-
 removeValue(Value, [H | Rest], [H | RemainingDice]) :-
     removeValue(Value, Rest, RemainingDice).
 
 
 
-% find_all_indices(+DiceValues, +ValuesToSearch, -Indices)
-% Returns the indices of each value in ValuesToSearch as they appear in DiceValues.
-% Only the first occurrence is taken, no duplicates.
+% *********************************************************************
+% Predicate Name: find_all_indices
+% Description: Finds all indices of a value in a list.
+% Parameters:
+%   - DiceValues: List of dice values.
+%   - Val: Value to find indices of.
+%   - Indices: List of indices of the value.
+% Algorithm:
+%   - Iterate over each element in DiceValues.
+%   - If the element matches the value, add its index to the list.
+% Reference: None
+% *********************************************************************
 find_all_indices(_, [], []).
 find_all_indices(DiceValues, [Val|Vals], [Index|Indices]) :-
     nth1(Index, DiceValues, Val), !,
     find_all_indices(DiceValues, Vals, Indices).
 find_all_indices(DiceValues, [_|Vals], Indices) :-
     find_all_indices(DiceValues, Vals, Indices).
-% find_dice_values(+DiceVals, +Indices, -ReturnVal)
-% Extracts values from DiceVals at positions specified in Indices.
+
+
+% *********************************************************************
+% Predicate Name: find_dice_values
+% Description: Finds the values of dice at specific indices.
+% Parameters:
+%   - DiceVals: List of dice values.
+%   - Indices: List of indices to find values at.
+%   - ReturnVal: List of values at the given indices.
+% Algorithm:
+%   - Iterate over each index in Indices.
+%   - Find the value at the given index in DiceVals.
+% Reference: None
+% *********************************************************************
 find_dice_values(DiceVals, Indices, ReturnVal) :-
     findall(Value, (
         member(Index, Indices),     % Iterate over each index in Indices
@@ -668,8 +1351,17 @@ find_dice_values(DiceVals, Indices, ReturnVal) :-
     ), ReturnVal).
 
 
-% find_category_name(+CategoryNum, -CategoryName)
-% Maps a category number to its corresponding category name.
+% *********************************************************************
+% Predicate Name: find_category_name
+% Description: Finds the name of a category based on its number.
+% Parameters:
+%   - CategoryNum: Number of the category.
+%   - CategoryName: Name of the category.
+% Algorithm:
+%   - Define a scorecard with category numbers and names.
+%   - Find the category name based on the category number.
+% Reference: None
+% *********************************************************************
 find_category_name(CategoryNum, CategoryName) :-
     Scorecard = [
         ["Ones", 1],
@@ -689,8 +1381,19 @@ find_category_name(CategoryNum, CategoryName) :-
 
 
 
-% find_potential_categories(+DiceValues, +Scorecard, +RollCount, -PotentialCategoryList)
-% Determines potential categories based on dice values and roll count.
+% *********************************************************************
+% Predicate Name: find_potential_categories
+% Description: Finds the potential categories to score based on dice values and roll count.
+% Parameters:
+%   - DiceValues: List of dice values.
+%   - Scorecard: List of rows in the scorecard.
+%   - RollCount: Number of rolls made in the current turn.
+%   - PotentialCategoryList: List of potential categories to score.
+% Algorithm:
+%   - Based on the roll count, find potential categories to score.
+%   - Return the list of potential categories.
+% Reference: None
+% *********************************************************************
 find_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategoryList) :-
     (   RollCount == 0 ->
         findall(CategoryName,
@@ -730,8 +1433,21 @@ find_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategoryLis
             PotentialCategoryList)
     ).
 
-% display_potential_categories(+DiceValues, +Scorecard, +RollCount, -PotentialCategoryList)
-% Calls find_potential_categories/4 and displays the potential categories.
+
+
+% *********************************************************************
+% Predicate Name: display_potential_categories
+% Description: Displays the potential categories based on dice values and roll count.
+% Parameters:
+%   - DiceValues: List of dice values.
+%   - Scorecard: List of rows in the scorecard.
+%   - RollCount: Number of rolls made in the current turn.
+%   - PotentialCategoryList: List of potential categories to score.
+% Algorithm:
+%   - Find potential categories based on dice values and roll count.
+%   - Display the potential categories.
+% Reference: None
+% *********************************************************************
 display_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategoryList) :-
     find_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategoryList),
     nl,write("Potential Categories:"), nl,
@@ -743,35 +1459,41 @@ display_potential_categories(DiceValues, Scorecard, RollCount, PotentialCategory
 
 
 
-% find_wildcard_index(+DiceVals, -WildcardIndex)
-% Identifies the position of the wildcard (_) in DiceVals based on given patterns.
+% *********************************************************************
+% Predicate Name: find_wildcard_index
+% Description: Finds the index of the wildcard in a list of dice values.
+% Parameters:
+%   - DiceVals: List of dice values.
+%   - WildcardIndex: Index of the wildcard in DiceVals.
+% Algorithm:
+%   - Define all valid patterns with their wildcard indices.
+%   - Check if any pattern matches DiceVals.
+% Reference: None
+% *********************************************************************
 find_wildcard_index(DiceVals, WildcardIndex) :-
     % Define all valid patterns with their wildcard indices
     Patterns = [
         ([1, 2, 3, _, 5], 4),
-        ([_, 1, 2, 3, 5], 1),
-        ([1, _, 2, 3, 5], 2),
-        ([1, 2, _, 3, 5], 3),
-        ([1, 2, 3, 4, _], 5),
-        ([_, 2, 3, 4, 5], 1),
         ([2, _, 3, 4, 5], 2),
-        ([2, 3, _, 4, 5], 3),
-        ([2, 3, 4, _, 5], 4),
-        ([_, 3, 4, 5, 6], 1),
-        ([3, _, 4, 5, 6], 2),
-        ([3, 4, _, 5, 6], 3),
-        ([3, 4, 5, _, 6], 4),
-        ([3, 4, 5, 6, _], 5),
-        ([1, _, 3, 4, 5], 2),
-        ([2, _, 4, 5, 6], 2),
-        ([2, 3, 4, _, 6], 4)
+        ([3, 4, 5, _, 6], 4)
     ],
     % Check if any pattern matches DiceVals
     member((Pattern, WildcardIndex), Patterns),
     matches_pattern(DiceVals, Pattern).
 
-% matches_pattern(+DiceVals, +Pattern)
-% Checks if DiceVals matches the pattern, treating _ as any value.
+
+% *********************************************************************
+% Predicate Name: matches_pattern
+% Description: Checks if a list of dice values matches a given pattern.
+% Parameters:
+%   - Dice: List of dice values.
+%   - Pattern: Pattern to match against.
+% Algorithm:
+%   - Base case: If both lists are empty, they match.
+%   - If the pattern element is a variable (_), match any value.
+%   - Otherwise, ensure exact match.
+% Reference: None
+% *********************************************************************
 matches_pattern([], []).
 matches_pattern([D | RestDice], [P | RestPattern]) :-
     (   var(P) -> true  % If pattern element is a variable (_), match any value
@@ -780,9 +1502,5 @@ matches_pattern([D | RestDice], [P | RestPattern]) :-
     matches_pattern(RestDice, RestPattern).
 
 
-% main predicate to initialize and display the scorecard
-scorecard :-
-    initialize_scorecard(Scorecard),
-    display_scorecard(Scorecard).
 
 
